@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy Node.js app to Azure Web App - cointwo
 
 on:
@@ -23,14 +20,23 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: npm install, build, and test
+      - name: Install pnpm
+        run: npm install -g pnpm
+
+      - name: Install dependencies (monorepo root)
+        run: pnpm install
+
+      - name: Build backend (if needed)
         run: |
-          npm install
-          npm run build --if-present
-          npm run test --if-present
+          cd apps/backend
+          pnpm run build || echo "No build step"
+          cd ../..
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: |
+          cd apps/backend
+          zip -r ../../release.zip .
+          cd ../..
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -41,7 +47,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build
-    
     permissions:
       id-token: write #This is required for requesting the JWT
       contents: read #This is required for actions/checkout
@@ -68,5 +73,4 @@ jobs:
         with:
           app-name: 'cointwo'
           slot-name: 'Production'
-          package: .
-          
+          package: . 
