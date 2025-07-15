@@ -8,7 +8,7 @@ import { TaskProgressCard } from './TaskProgressCard';
 import { ReferralStatsCard } from './ReferralStatsCard';
 
 // Placeholder komponen utama
-const SendForm = ({ user }: { user: { email: string; address: string; id?: string } }) => (
+const SendForm = () => (
   <Card className="mb-4">
     <h2 className="text-lg font-bold mb-2">Kirim Token</h2>
     <form className="space-y-2">
@@ -20,7 +20,7 @@ const SendForm = ({ user }: { user: { email: string; address: string; id?: strin
   </Card>
 );
 
-const SwapForm = ({ user }: { user: { email: string; address: string; id?: string } }) => (
+const SwapForm = () => (
   <Card>
     <h2 className="text-lg font-bold mb-2">Swap Token</h2>
     <form className="space-y-2">
@@ -43,10 +43,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     <div className="max-w-5xl mx-auto py-8 px-2 grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
         <TokenList address={address} />
-        <SendForm user={user} />
+        <SendForm />
       </div>
       <div className="space-y-6">
-        <SwapForm user={user} />
+        <SwapForm />
         <TaskProgressCard userId={userId} />
         <ReferralStatsCard userId={userId} />
       </div>
