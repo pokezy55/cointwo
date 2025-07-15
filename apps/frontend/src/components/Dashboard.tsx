@@ -1,8 +1,7 @@
-import React from 'react';
 import { Card } from 'ui/Card';
 import { TokenList } from './TokenList';
-import { SendForm } from './SendForm';
-import { SwapForm } from './SwapForm';
+import SendForm from './SendForm';
+import SwapForm from './SwapForm';
 import { TaskProgressCard } from './TaskProgressCard';
 import { ReferralStatsCard } from './ReferralStatsCard';
 

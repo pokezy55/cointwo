@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from 'ui/Button';
 
 const SendForm = () => {
@@ -26,4 +26,4 @@ const SendForm = () => {
   );
 };
 
-export { SendForm }; 
+export default SendForm; 

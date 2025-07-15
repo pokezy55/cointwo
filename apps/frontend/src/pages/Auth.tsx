@@ -1,11 +1,18 @@
-import React, { useState } from 'react';
-import { toast } from 'react-toastify';
-import axios from 'axios';
+import { useState } from 'react';
 
-const Auth = () => {
+interface AuthProps {
+  onAuth: (user: any) => void;
+}
+
+const Auth = ({ onAuth }: AuthProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // ...state lain...
+
+  // Dummy login handler
+  const handleLogin = () => {
+    // Simulasi login sukses
+    onAuth({ id: 'dummy-id', address: '0x123...', email });
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-100 to-white px-4">
@@ -25,7 +32,7 @@ const Auth = () => {
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        <button className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition mb-4">
+        <button className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition mb-4" onClick={handleLogin}>
           Login
         </button>
         <div className="flex justify-between">

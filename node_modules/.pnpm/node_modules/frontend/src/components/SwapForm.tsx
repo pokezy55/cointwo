@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button } from 'ui/Button';
 
 const SwapForm = () => {
@@ -34,4 +34,4 @@ const SwapForm = () => {
   );
 };
 
-export { SwapForm }; 
+export default SwapForm; 
