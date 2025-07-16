@@ -113,6 +113,34 @@ async function checkSwap(provider: JsonRpcProvider, address: string, minUSD: num
   return false;
 }
 
+function calcLevel(xp: number) {
+  return Math.floor(Math.sqrt(xp / 20));
+}
+
+async function updateXPAndCampaign(userId: string, chain: string, action: 'deposit' | 'swap' | 'invite') {
+  // XP config
+  const XP_MAP = { deposit: 5, swap: 10, invite: 5 };
+  const xpAdd = XP_MAP[action] || 0;
+  // Update XP
+  let userXP = await prisma.userXP.findFirst({ where: { userId, chain } });
+  if (!userXP) {
+    userXP = await prisma.userXP.create({ data: { userId, chain, xp: 0, level: 1 } });
+  }
+  const newXP = userXP.xp + xpAdd;
+  const newLevel = calcLevel(newXP);
+  await prisma.userXP.update({ where: { id: userXP.id }, data: { xp: newXP, level: newLevel } });
+  // Update campaign progress
+  let camp = await prisma.campaignProgress.findFirst({ where: { userId, chain, campaignId: action } });
+  if (!camp) {
+    camp = await prisma.campaignProgress.create({ data: { userId, chain, campaignId: action, progress: 0, status: 'in_progress' } });
+  }
+  const progressGoal = action === 'deposit' ? 1 : action === 'swap' ? 1 : action === 'invite' ? 1 : 1;
+  const newProgress = Math.min(camp.progress + 1, progressGoal);
+  let status = 'in_progress';
+  if (newProgress >= progressGoal) status = 'completed';
+  await prisma.campaignProgress.update({ where: { id: camp.id }, data: { progress: newProgress, status } });
+}
+
 // Worker utama
 async function pollTasks() {
   const users = await prisma.user.findMany();
@@ -127,6 +155,7 @@ async function pollTasks() {
         where: { userId: user.id, type: 'deposit' },
         data: { status: 'eligible' },
       });
+      await updateXPAndCampaign(user.id, chain, 'deposit');
     }
     // Swap
     const eligibleSwap = await checkSwap(provider, address, 20);
@@ -135,7 +164,10 @@ async function pollTasks() {
         where: { userId: user.id, type: 'swap' },
         data: { status: 'eligible' },
       });
+      await updateXPAndCampaign(user.id, chain, 'swap');
     }
+    // TODO: Invite logic (misal: cek referral baru, dsb)
+    // await updateXPAndCampaign(user.id, chain, 'invite');
   }
 }
 

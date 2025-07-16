@@ -215,6 +215,32 @@ app.post('/admin/referral-reward/complete', async (req: Request, res: Response) 
   }
 });
 
+app.get('/leaderboard', async (req, res) => {
+  try {
+    const { chain = 'ethereum', limit = 20, address, season } = req.query;
+    // Query user XP, join user
+    const where: any = { chain };
+    if (season) where.season = season;
+    const userXPs = await prisma.userXP.findMany({
+      where,
+      include: { user: true },
+      orderBy: { xp: 'desc' },
+      take: Number(limit),
+    });
+    const leaderboard = userXPs.map((u, i) => ({
+      rank: i + 1,
+      username: u.user.email?.split('@')[0] || u.user.walletAddress?.slice(0, 8),
+      address: u.user.walletAddress,
+      level: u.level,
+      xp: u.xp,
+      isActive: address && u.user.walletAddress.toLowerCase() === String(address).toLowerCase(),
+    }));
+    res.json({ leaderboard });
+  } catch (err) {
+    res.status(500).json({ error: 'Gagal ambil leaderboard', detail: err.message });
+  }
+});
+
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Backend listening on port ${PORT}`);

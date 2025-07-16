@@ -1,35 +1,42 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { UserContextType } from '../utils/api';
 
-export const AuthContext = createContext<UserContextType | undefined>(undefined);
+const NETWORKS = [
+  { name: 'Ethereum', chainId: 1, symbol: 'ETH', logo: '/eth.svg', rpc: 'https://rpc.ankr.com/eth' },
+  { name: 'BNB Smart Chain', chainId: 56, symbol: 'BNB', logo: '/bnb.svg', rpc: 'https://rpc.ankr.com/bsc' },
+  { name: 'Polygon', chainId: 137, symbol: 'MATIC', logo: '/polygon.svg', rpc: 'https://rpc.ankr.com/polygon' },
+  { name: 'Base', chainId: 8453, symbol: 'ETH', logo: '/base.svg', rpc: 'https://mainnet.base.org' },
+];
+
+const defaultNetwork = NETWORKS[0];
+
+const AuthContext = createContext<any>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUserState] = useState<any>(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+  const [user, setUser] = useState<any>(() => {
+    const u = localStorage.getItem('user');
+    return u ? JSON.parse(u) : null;
+  });
+  const [selectedNetwork, setSelectedNetwork] = useState(() => {
+    const n = localStorage.getItem('selectedNetwork');
+    return n ? JSON.parse(n) : defaultNetwork;
   });
 
   useEffect(() => {
-    if (user) localStorage.setItem('user', JSON.stringify(user));
-    else localStorage.removeItem('user');
+    localStorage.setItem('user', JSON.stringify(user));
   }, [user]);
 
-  const setUser = (u: any) => setUserState(u);
-  const logout = () => setUserState(null);
+  useEffect(() => {
+    localStorage.setItem('selectedNetwork', JSON.stringify(selectedNetwork));
+  }, [selectedNetwork]);
 
-  const value: UserContextType = {
-    address: user?.address || '',
-    email: user?.email,
-    user,
-    setUser,
-    logout,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ user, setUser, selectedNetwork, setSelectedNetwork, NETWORKS }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used within AuthProvider');
-  return ctx;
+  return useContext(AuthContext);
 } 

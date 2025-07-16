@@ -1,107 +1,105 @@
-import { FaTasks, FaWallet, FaUserFriends, FaBars } from 'react-icons/fa';
-import { useEffect, useState, useRef } from 'react';
-import { getTaskStatus } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
-import Auth from './Auth';
-
-// Ambil address dari context
-const TASK_TITLES: Record<number, string> = {
-  1: 'Deposit $15+',
-  2: 'Swap $20+',
-  3: 'Invite Friend',
-};
+import { motion, AnimatePresence } from 'framer-motion';
+import TaskCard from '../components/TaskCard';
+import { Star } from 'phosphor-react';
 
 export default function TaskPage() {
-  const { address } = useAuth();
+  const { user, selectedNetwork, NETWORKS, setSelectedNetwork } = useAuth();
+  const address = user?.address;
   const [tasks, setTasks] = useState<any[]>([]);
+  const [campaigns, setCampaigns] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const prevTasksRef = useRef<any[]>([]);
+  const [showCampaign, setShowCampaign] = useState(false);
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [season, setSeason] = useState('all');
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!address) return;
-    let timer: any;
     async function fetchTasks() {
+      setLoading(true);
       try {
-        setLoading(true);
-        const data = await getTaskStatus(address);
-        // Deteksi perubahan status task
-        const prevTasks = prevTasksRef.current;
-        data.forEach((task: any) => {
-          const prev = prevTasks.find((t: any) => t.taskNumber === task.taskNumber);
-          if (prev && prev.status !== task.status) {
-            // Eligible
-            if (task.status === 'eligible') {
-              toast.success('Task ' + TASK_TITLES[task.taskNumber] + ' completed, reward is waiting for admin approval!');
-            }
-            // Completed / reward sent
-            if (task.status === 'completed' || task.rewardSent) {
-              toast('Your $3 reward has been sent to your wallet! 🤑', { type: 'info' });
-            }
-          }
-        });
-        prevTasksRef.current = data;
-        setTasks(data);
+        const res = await fetch(`/task/status?user=${address}&chain=${selectedNetwork.name}`);
+        const data = await res.json();
+        setTasks(data.tasks || []);
+        setCampaigns(data.campaigns || []);
+      } catch {
+        setTasks([]);
+        setCampaigns([]);
       } finally {
         setLoading(false);
       }
     }
-    fetchTasks();
-    timer = setInterval(fetchTasks, 5000);
-    return () => clearInterval(timer);
-  }, [address]);
+    if (!showLeaderboard) fetchTasks();
+  }, [address, selectedNetwork, showLeaderboard]);
 
-  if (!address) {
-    return <Auth />;
-  }
+  useEffect(() => {
+    async function fetchLeaderboard() {
+      const res = await fetch(`/leaderboard?chain=${selectedNetwork.name}&limit=20${season !== 'all' ? `&season=${season}` : ''}&address=${address}`);
+      const data = await res.json();
+      setLeaderboard(data.leaderboard || []);
+    }
+    if (showLeaderboard) fetchLeaderboard();
+  }, [selectedNetwork, season, showLeaderboard, address]);
 
   return (
-    <div className="min-h-screen bg-[#181f2a] flex flex-col text-white">
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <div className="font-bold text-lg">Task</div>
-        <FaBars className="text-2xl" />
+    <div className="min-h-screen bg-[#10141f] max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold mb-1">Your Tasks</h1>
+        <div className="text-gray-400 text-sm">Complete tasks to earn rewards.</div>
+        <div className="flex gap-2 mt-2">
+          <button className={`px-3 py-1 rounded ${!showCampaign && !showLeaderboard ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-gray-400'}`} onClick={() => { setShowCampaign(false); setShowLeaderboard(false); }}>Tasks</button>
+          <button className={`px-3 py-1 rounded ${showCampaign ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-gray-400'}`} onClick={() => { setShowCampaign(true); setShowLeaderboard(false); }}>Campaigns</button>
+          <button className={`px-3 py-1 rounded ${showLeaderboard ? 'bg-green-600 text-white' : 'bg-zinc-800 text-gray-400'}`} onClick={() => { setShowLeaderboard(true); setShowCampaign(false); }}>Leaderboard</button>
+        </div>
+        <div className="flex gap-2 mt-2">
+          <span className="text-xs text-gray-400">Network:</span>
+          <select className="bg-zinc-900 text-white rounded px-2 py-1" value={selectedNetwork.chainId} onChange={e => setSelectedNetwork(NETWORKS.find((n: any) => n.chainId === +e.target.value))}>
+            {NETWORKS.map((n: any) => <option key={n.chainId} value={n.chainId}>{n.name}</option>)}
+          </select>
+          <span className="text-xs text-gray-400">Season:</span>
+          <select className="bg-zinc-900 text-white rounded px-2 py-1" value={season} onChange={e => setSeason(e.target.value)}>
+            <option value="all">All</option>
+            <option value="weekly">Weekly</option>
+            <option value="seasonal">Seasonal</option>
+          </select>
+        </div>
       </div>
-      <div className="px-4 text-xs text-gray-400 mb-2">Complete tasks to earn rewards!</div>
-      <div className="flex-1 overflow-y-auto px-2 pb-24">
-        {loading ? (
-          <div className="text-center text-gray-400 py-8">Loading tasks...</div>
-        ) : (
-          tasks.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">No tasks found.</div>
+      <div className="flex-1 flex flex-col gap-4">
+        <AnimatePresence>
+          {loading && !showLeaderboard ? (
+            <div className="text-center text-gray-500 py-8">Loading...</div>
+          ) : showLeaderboard ? (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 mb-2 font-bold text-blue-400"><Star size={18} />Leaderboard</div>
+              <div className="flex flex-col gap-1">
+                {leaderboard.length === 0 && <div className="text-gray-500">No leaderboard data.</div>}
+                {leaderboard.map((u, i) => (
+                  <div key={u.address} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${u.isActive ? 'bg-blue-900 text-white font-bold' : 'bg-zinc-900 text-gray-200'}`}>
+                    <span className="w-6 text-center">{u.rank}</span>
+                    <span className="flex-1">{u.username}</span>
+                    <span className="flex items-center gap-1 px-2 py-1 rounded bg-blue-700 text-xs font-bold"><Star size={14} />{u.level}</span>
+                    <span className="text-xs">XP: {u.xp}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : showCampaign ? (
+            campaigns.length === 0 ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center text-gray-500 py-8">No campaigns found.</motion.div>
+            ) : (
+              campaigns.map(camp => <TaskCard key={camp.id} task={camp} showLeaderboard={false} />)
+            )
           ) : (
-            tasks.map((task) => {
-              const done = ['eligible', 'completed'].includes(task.status) || task.rewardSent;
-              return (
-                <div key={task.taskNumber} className={`flex items-center bg-[#232b3b] rounded-xl p-4 mb-3 ${done ? 'opacity-60' : ''}`}>
-                  <div className={`w-4 h-4 rounded-full mr-4 ${done ? 'bg-green-400' : 'bg-gray-500'}`}></div>
-                  <div className="flex-1 font-bold text-base">{TASK_TITLES[task.taskNumber] || `Task #${task.taskNumber}`}</div>
-                  {done && <span className="text-green-400 text-xs font-bold ml-2">Done</span>}
-                  {!done && <span className="text-yellow-400 text-xs font-bold ml-2">{task.status}</span>}
-                </div>
-              );
-            })
-          )
-        )}
+            tasks.length === 0 ? (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center text-gray-500 py-8">No tasks found.</motion.div>
+            ) : (
+              tasks.map(task => <TaskCard key={task.id} task={task} />)
+            )
+          )}
+        </AnimatePresence>
       </div>
-      <div className="fixed bottom-0 left-0 w-full bg-[#232b3b] flex justify-around items-center py-2 border-t border-[#232b3b] z-10">
-        <button className="flex flex-col items-center text-gray-400">
-          <FaWallet className="text-xl" />
-          <span className="text-xs">Wallet</span>
-        </button>
-        <button className="flex flex-col items-center text-blue-400">
-          <FaTasks className="text-xl" />
-          <span className="text-xs">Task</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-400">
-          <FaUserFriends className="text-xl" />
-          <span className="text-xs">Referral</span>
-        </button>
-        <button className="flex flex-col items-center text-gray-400">
-          <FaBars className="text-xl" />
-          <span className="text-xs">Menu</span>
-        </button>
-      </div>
-      <div className="text-center text-xs text-gray-500 mt-2 mb-1">@cointwobot</div>
     </div>
   );
 } 

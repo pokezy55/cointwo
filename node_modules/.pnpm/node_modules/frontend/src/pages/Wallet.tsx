@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy } from 'phosphor-react';
+import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy, CurrencyEth, CurrencyDollar, Info, Star } from 'phosphor-react';
 import tokenListRaw from '../assets/tokenList.json';
 import ActionModal from '../components/ActionModal';
 import { QRCodeCanvas } from 'qrcode.react';
 import { toast } from 'react-toastify';
 import Auth from './Auth';
+import WelcomeCard from '../components/WelcomeCard';
+import TokenItem from '../components/TokenItem';
+import HistoryItem from '../components/HistoryItem';
 
 interface Token {
   symbol: string;
@@ -27,28 +30,27 @@ interface BalanceMap {
   [symbol: string]: string;
 }
 
-const tokenList: Token[] = tokenListRaw as Token[];
-
+const tokenList = tokenListRaw as any[];
 const COINGECKO_IDS: { [symbol: string]: string } = {
-  ETH: 'ethereum',
-  USDT: 'tether',
-  USDC: 'usd-coin',
-  DAI: 'dai',
-  BNB: 'binancecoin',
-  BUSD: 'binance-usd',
-  MATIC: 'matic-network',
-  QUICK: 'quick',
+  ETH: 'ethereum', USDT: 'tether', USDC: 'usd-coin', DAI: 'dai', BNB: 'binancecoin', BUSD: 'binance-usd', MATIC: 'matic-network', QUICK: 'quick',
 };
-
-const CURRENT_CHAIN = 'ethereum'; // TODO: dynamic chain switch
-// Ambil address dari context
+const CURRENT_CHAIN = 'ethereum';
 
 export default function WalletPage() {
-  const { address } = useAuth();
-  const [prices, setPrices] = useState<PriceMap>({});
-  const [balances, setBalances] = useState<BalanceMap>({});
-  const [tokens, setTokens] = useState<Token[]>([]);
+  const { user, selectedNetwork } = useAuth();
+  const address = user?.address;
+  const avatar = user?.telegram?.photo_url;
+  const [prices, setPrices] = useState<any>({});
+  const [balances, setBalances] = useState<any>({});
+  const [tokens, setTokens] = useState<any[]>([]);
+  const [selectedTab, setSelectedTab] = useState<'token'|'history'>('token');
+  const [history, setHistory] = useState<any[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<string>('');
   const [modal, setModal] = useState<null | 'send' | 'receive' | 'swap' | 'add'>(null);
+  const [airdropTokens, setAirdropTokens] = useState<any[]>([]);
+  const [showAirdropTab, setShowAirdropTab] = useState(false);
+  const [xp, setXP] = useState(0);
+  const [level, setLevel] = useState(1);
 
   // State untuk form Send Token
   const [sendAddress, setSendAddress] = useState('');
@@ -69,7 +71,8 @@ export default function WalletPage() {
   const [addTokenError, setAddTokenError] = useState<string | null>(null);
   const [addTokenInfo, setAddTokenInfo] = useState<{ symbol: string; name: string; decimals: number } | null>(null);
 
-  // Fetch prices from CoinGecko
+  const prevTokenSymbols = useRef<string[]>([]);
+
   useEffect(() => {
     async function fetchPrices() {
       try {
@@ -77,37 +80,77 @@ export default function WalletPage() {
         const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`);
         const data = await res.json();
         setPrices(data);
-      } catch (e) {}
+        setLastUpdated(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      } catch {}
     }
     fetchPrices();
     const interval = setInterval(fetchPrices, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch balances from backend
   useEffect(() => {
     if (!address) return;
     async function fetchBalances() {
       try {
-        const res = await fetch(`/wallet/balance?address=${address}&chain=${CURRENT_CHAIN}`);
-        const data: { symbol: string; balance: string; address: string; chain: string }[] = await res.json();
-        const balMap: BalanceMap = {};
-        data.forEach(t => { balMap[t.symbol] = t.balance; });
+        const res = await fetch(`/wallet/balance?address=${address}&chain=${selectedNetwork.name}`);
+        const data = await res.json();
+        const balMap: any = {};
+        data.forEach((t: any) => { balMap[t.symbol] = t.balance; });
         setBalances(balMap);
-      } catch (e) {}
+      } catch {}
     }
     fetchBalances();
-  }, [address]);
+  }, [address, selectedNetwork.name]);
 
-  // Filter and sort tokens for current chain
   useEffect(() => {
-    const filtered: Token[] = tokenList.filter((t: Token) => t.chain === CURRENT_CHAIN);
-    // Attach balance
-    const withBalance: Token[] = filtered.map((t: Token) => ({ ...t, balance: parseFloat(balances[t.symbol] || '0') }));
-    // Sort: balance > 0 ke atas
-    withBalance.sort((a, b) => (b.balance! > 0 ? 1 : 0) - (a.balance! > 0 ? 1 : 0) || (b.balance! - a.balance!));
+    const filtered = tokenList.filter((t: any) => t.chain === selectedNetwork.name);
+    const withBalance = filtered.map((t: any) => ({ ...t, balance: parseFloat(balances[t.symbol] || '0') }));
+    withBalance.sort((a: any, b: any) => (b.balance > 0 ? 1 : 0) - (a.balance > 0 ? 1 : 0) || (b.balance - a.balance));
     setTokens(withBalance);
-  }, [balances]);
+
+    // --- Airdrop Detection ---
+    const currentSymbols = withBalance.map(t => t.symbol);
+    if (prevTokenSymbols.current.length > 0) {
+      const newTokens = withBalance.filter(t => !prevTokenSymbols.current.includes(t.symbol) && t.balance > 0);
+      newTokens.forEach(t => {
+        setTokens(prev => {
+          if (!prev.find(pt => pt.symbol === t.symbol)) {
+            toast.info(`🎉 You received new token: $${t.symbol}`);
+            return [...prev, t];
+          }
+          return prev;
+        });
+      });
+    }
+    prevTokenSymbols.current = currentSymbols;
+  }, [balances, selectedNetwork.name]);
+
+  useEffect(() => {
+    if (!address) return;
+    async function fetchHistory() {
+      try {
+        const res = await fetch(`/wallet/history?address=${address}&chain=${selectedNetwork.name}`);
+        const data = await res.json();
+        setHistory(data);
+      } catch {
+        setHistory([]);
+      }
+    }
+    fetchHistory();
+  }, [address, selectedNetwork.name]);
+
+  useEffect(() => {
+    async function fetchXP() {
+      const res = await fetch(`/leaderboard?chain=${selectedNetwork.name}&limit=100&address=${address}`);
+      const data = await res.json();
+      const me = data.leaderboard.find((u: any) => u.address.toLowerCase() === address?.toLowerCase());
+      if (me) {
+        setXP(me.xp);
+        setLevel(me.level);
+      }
+    }
+    if (address) fetchXP();
+  }, [address, selectedNetwork]);
 
   // Regex EVM address
   const isValidAddress = (addr: string) => /^0x[a-fA-F0-9]{40}$/.test(addr);
@@ -128,7 +171,7 @@ export default function WalletPage() {
       const res = await fetch('/wallet/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to: sendAddress, amount: sendAmount, chain: CURRENT_CHAIN, address })
+        body: JSON.stringify({ to: sendAddress, amount: sendAmount, chain: selectedNetwork.name, address })
       });
       const data = await res.json();
       if (res.ok) {
@@ -149,8 +192,10 @@ export default function WalletPage() {
   };
 
   const handleCopyAddress = () => {
-    navigator.clipboard.writeText(address);
-    toast.success('Address copied to clipboard!');
+    if (address) {
+      navigator.clipboard.writeText(address);
+      toast.success('Address copied!');
+    }
   };
 
   const handleSwap = async (e: React.FormEvent) => {
@@ -169,7 +214,7 @@ export default function WalletPage() {
       const res = await fetch('/wallet/swap', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fromToken: swapFrom, toToken: swapTo, amount: swapAmount, chain: CURRENT_CHAIN, address })
+        body: JSON.stringify({ fromToken: swapFrom, toToken: swapTo, amount: swapAmount, chain: selectedNetwork.name, address })
       });
       const data = await res.json();
       if (res.ok) {
@@ -201,7 +246,7 @@ export default function WalletPage() {
     setAddTokenLoading(true);
     try {
       // Fetch token info
-      const infoRes = await fetch(`/wallet/token-info?address=${addTokenAddress}&chain=${CURRENT_CHAIN}`);
+      const infoRes = await fetch(`/wallet/token-info?address=${addTokenAddress}&chain=${selectedNetwork.name}`);
       const info = await infoRes.json();
       if (!info.symbol || !info.name) {
         setAddTokenError('Token info not found');
@@ -213,7 +258,7 @@ export default function WalletPage() {
       const saveRes = await fetch('/wallet/add-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: addTokenAddress, chain: CURRENT_CHAIN, user: address })
+        body: JSON.stringify({ address: addTokenAddress, chain: selectedNetwork.name, user: address })
       });
       const saveData = await saveRes.json();
       if (saveRes.ok) {
@@ -233,78 +278,109 @@ export default function WalletPage() {
     }
   };
 
+  // Scan Airdrop manual
+  const handleScanAirdrop = async () => {
+    // Dummy: fetch token baru 24 jam terakhir
+    // Replace with real backend logic if available
+    const res = await fetch(`/wallet/airdrop-scan?address=${user?.address}&chain=${selectedNetwork.name}`);
+    const data = await res.json();
+    setAirdropTokens(data.tokens || []);
+    setShowAirdropTab(true);
+    toast.info('Airdrop scan complete!');
+  };
+
+  // Portfolio value
+  const totalValue = tokens.reduce((sum, t) => sum + (t.balance * (prices[COINGECKO_IDS[t.symbol]]?.usd || 0)), 0);
+
   if (!address) {
-    return <Auth />;
+    return <WelcomeCard />;
   }
 
   return (
-    <div className="min-h-screen bg-[#10141f] flex flex-col text-white max-w-md mx-auto">
+    <div className="min-h-screen bg-[#10141f] max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+      <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
+          {avatar && <img src={avatar} alt="avatar" className="w-8 h-8 rounded-full border border-zinc-700" />}
           <span className="text-xs text-gray-400 font-mono">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+          <button onClick={handleCopyAddress} className="ml-1 p-1 rounded-lg hover:bg-zinc-800 transition"><Copy size={16} /></button>
         </div>
-        <div className="flex gap-2">
-          <button onClick={handleCopyAddress} className="p-2 rounded-lg hover:bg-[#232b3b]">
-            <Copy size={20} weight="bold" />
-          </button>
+        <div className="flex items-center gap-2">
+          <span className="flex items-center gap-1 px-2 py-1 rounded bg-blue-700 text-xs font-bold"><Star size={16} />Level {level}</span>
+          <span className="text-xs text-gray-400">XP: {xp}</span>
+          <span className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 text-xs text-blue-400 font-bold">
+            <img src={selectedNetwork.logo} alt={selectedNetwork.name} className="w-4 h-4 rounded-full" />
+            {selectedNetwork.name}
+          </span>
+          <button className="ml-2 px-3 py-1 rounded bg-blue-700 text-white text-xs font-bold hover:bg-blue-600 transition" onClick={handleScanAirdrop}>Scan Airdrop</button>
         </div>
       </div>
-      {/* Balance */}
-      <div className="flex flex-col items-center mt-2 mb-2">
-        <div className="text-4xl font-extrabold tracking-tight">$0.00</div>
-        <div className="text-xs text-gray-400 mt-1">Total Portfolio Value | <span className="text-blue-300">0.0000</span></div>
-        <div className="text-xs text-gray-500">Last updated: 23:59:59 PM</div>
+      <div className="w-full max-w-xs mb-4">
+        <div className="h-2 bg-zinc-800 rounded-full">
+          <div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${Math.min((xp % 20) * 5, 100)}%` }} />
+        </div>
       </div>
-      {/* Action Bar */}
-      <div className="flex justify-between px-4 mt-4 mb-4 gap-2">
-        <button className="flex flex-col items-center flex-1 py-3 bg-[#181f2a] rounded-xl hover:bg-[#232b3b] transition" onClick={() => setModal('send')}>
-          <PaperPlaneRight size={24} weight="bold" className="mb-1" />
-          <span className="text-xs">Send</span>
-        </button>
-        <button className="flex flex-col items-center flex-1 py-3 bg-[#181f2a] rounded-xl hover:bg-[#232b3b] transition" onClick={() => setModal('receive')}>
-          <DownloadSimple size={24} weight="bold" className="mb-1" />
-          <span className="text-xs">Receive</span>
-        </button>
-        <button className="flex flex-col items-center flex-1 py-3 bg-[#181f2a] rounded-xl hover:bg-[#232b3b] transition" onClick={() => setModal('swap')}>
-          <ArrowsLeftRight size={24} weight="bold" className="mb-1" />
-          <span className="text-xs">Swap</span>
-        </button>
-        <button className="flex flex-col items-center flex-1 py-3 bg-[#181f2a] rounded-xl hover:bg-[#232b3b] transition" onClick={() => setModal('add')}>
-          <Plus size={24} weight="bold" className="mb-1" />
-          <span className="text-xs">Add</span>
-        </button>
+      {/* Airdrop Detected Tab */}
+      {showAirdropTab && (
+        <div className="mb-4">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="font-bold text-blue-400">Airdrop Detected</span>
+            <button className="text-xs text-gray-400 underline" onClick={() => setShowAirdropTab(false)}>Hide</button>
+          </div>
+          <div className="flex flex-col gap-2">
+            {airdropTokens.length === 0 ? (
+              <div className="text-gray-500">No new airdrop tokens found.</div>
+            ) : (
+              airdropTokens.map((token: any) => (
+                <div key={token.address} className="bg-zinc-900 rounded-xl px-4 py-3 flex items-center gap-3">
+                  <img src={token.logo} alt={token.symbol} className="w-8 h-8 rounded-full" />
+                  <div className="flex-1">
+                    <div className="font-semibold text-base">{token.name}</div>
+                    <div className="text-xs text-gray-400">{token.symbol}</div>
+                  </div>
+                  <button className="ml-2 px-2 py-1 rounded bg-green-600 text-white text-xs font-bold hover:bg-green-500 transition" onClick={() => toast.success(`Token $${token.symbol} claimed!`)}>Claim</button>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+      {/* Portfolio */}
+      <div className="flex flex-col items-center mb-6">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-3xl font-bold">${totalValue.toFixed(2)}</span>
+          <CurrencyEth size={24} className="text-blue-400" />
+        </div>
+        <span className="text-sm text-gray-400 mb-1">Total Portfolio Value</span>
+        <span className="text-xs text-gray-500">Last updated: {lastUpdated}</span>
+      </div>
+      {/* Main Actions */}
+      <div className="grid grid-cols-2 gap-4 mb-6">
+        <button className="flex flex-col items-center justify-center h-20 rounded-xl bg-zinc-800 hover:scale-105 active:scale-95 transition text-white" onClick={() => setModal('send')}><PaperPlaneRight size={28} /><span className="mt-1 text-sm">Send</span></button>
+        <button className="flex flex-col items-center justify-center h-20 rounded-xl bg-zinc-800 hover:scale-105 active:scale-95 transition text-white" onClick={() => setModal('receive')}><DownloadSimple size={28} /><span className="mt-1 text-sm">Receive</span></button>
+        <button className="flex flex-col items-center justify-center h-20 rounded-xl bg-zinc-800 hover:scale-105 active:scale-95 transition text-white" onClick={() => setModal('swap')}><ArrowsLeftRight size={28} /><span className="mt-1 text-sm">Swap</span></button>
+        <button className="flex flex-col items-center justify-center h-20 rounded-xl bg-zinc-800 hover:scale-105 active:scale-95 transition text-white" onClick={() => setModal('add')}><Plus size={28} /><span className="mt-1 text-sm">Add</span></button>
       </div>
       {/* Tabs */}
-      <div className="flex border-b border-[#232b3b] px-4 mt-2">
-        <button className="flex-1 py-2 text-blue-400 border-b-2 border-blue-400 font-bold">Token</button>
-        <button className="flex-1 py-2 text-gray-400">History</button>
+      <div className="flex mb-4">
+        <button className={`flex-1 py-2 rounded-l-xl ${selectedTab==='token' ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-gray-400'}`} onClick={() => setSelectedTab('token')}>Tokens</button>
+        <button className={`flex-1 py-2 rounded-r-xl ${selectedTab==='history' ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-gray-400'}`} onClick={() => setSelectedTab('history')}>History</button>
       </div>
-      {/* Token List */}
-      <div className="flex-1 overflow-y-auto px-2 pb-24">
-        {tokens.length === 0 ? (
-          <div className="text-center text-gray-500 mt-12">No transaction history found</div>
+      {/* Tab Content */}
+      <div className="flex-1 overflow-y-auto">
+        {selectedTab === 'token' ? (
+          <div className="flex flex-col gap-2">
+            {tokens.length === 0 && <div className="text-center text-gray-500 py-8">No tokens found.</div>}
+            {tokens.map(token => <TokenItem key={token.symbol} token={token} price={prices[COINGECKO_IDS[token.symbol]]?.usd} />)}
+          </div>
         ) : (
-          tokens.map((token) => {
-            const priceData = prices[COINGECKO_IDS[token.symbol]] || {};
-            const price = priceData.usd || 0;
-            const change = priceData.usd_24h_change?.toFixed(2) || 0;
-            return (
-              <div key={token.symbol} className="flex items-center bg-[#181f2a] rounded-xl p-4 mb-3">
-                <img src={token.logo} alt={token.symbol} className="w-10 h-10 mr-4" />
-                <div className="flex-1">
-                  <div className="font-bold text-base">{token.symbol}</div>
-                  <div className="text-xs text-gray-400">({token.name}) ${price?.toLocaleString()} <span className={+change >= 0 ? 'text-green-400' : 'text-red-400'}>{+change >= 0 ? '+' : ''}{change}%</span></div>
-                </div>
-                <div className="text-right">
-                  <div className="font-bold text-base">{token.balance?.toFixed(6)}</div>
-                  <div className="text-xs text-gray-400">${((token.balance || 0) * price).toFixed(2)}</div>
-                </div>
-              </div>
-            );
-          })
+          <div className="flex flex-col gap-2">
+            {history.length === 0 && <div className="text-center text-gray-500 py-8">No transaction history found.</div>}
+            {history.map(tx => <HistoryItem key={tx.id} tx={tx} />)}
+          </div>
         )}
       </div>
+      {/* TODO: ActionModal, dsb */}
       <ActionModal open={modal === 'send'} onClose={() => setModal(null)} title="Send Token">
         <form className="flex flex-col gap-4" onSubmit={handleSend}>
           <input
