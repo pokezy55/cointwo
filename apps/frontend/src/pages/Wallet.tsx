@@ -275,16 +275,16 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#10141f] max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans">
+    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans border border-white/10 rounded-2xl shadow-xl">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2">
-          {avatar && <img src={avatar} alt="avatar" className="w-8 h-8 rounded-full border border-zinc-700" />}
+          {avatar && <img src={avatar} alt="avatar" className="w-9 h-9 rounded-full border border-white/10" />}
           <span className="text-xs text-gray-400 font-mono">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
-          <button onClick={handleCopyAddress} className="ml-1 p-1 rounded-lg hover:bg-zinc-800 transition"><Copy size={16} /></button>
+          <button onClick={handleCopyAddress} className="ml-1 p-1 rounded-lg hover:bg-white/10 transition"><Copy size={18} /></button>
         </div>
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 px-2 py-1 rounded bg-blue-700 text-xs font-bold"><Star size={16} />Level {level}</span>
+          <span className="flex items-center gap-1 px-2 py-1 rounded bg-blue-700/80 text-xs font-semibold"><Star size={16} />Level {level}</span>
           <span className="text-xs text-gray-400">XP: {xp}</span>
           <span className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 text-xs text-blue-400 font-bold">
             <img src={selectedNetwork.logo} alt={selectedNetwork.name} className="w-4 h-4 rounded-full" />
@@ -310,7 +310,7 @@ export default function WalletPage() {
               <div className="text-gray-500">No new airdrop tokens found.</div>
             ) : (
               airdropTokens.map((token: any) => (
-                <div key={token.address} className="bg-zinc-900 rounded-xl px-4 py-3 flex items-center gap-3">
+                <div key={token.address} className="bg-zinc-900 rounded-xl px-4 py-3 flex items-center gap-3 border border-white/10">
                   <img src={token.logo} alt={token.symbol} className="w-8 h-8 rounded-full" />
                   <div className="flex-1">
                     <div className="font-semibold text-base">{token.name}</div>
@@ -333,11 +333,11 @@ export default function WalletPage() {
         <span className="text-xs text-gray-500">Last updated: {lastUpdated}</span>
       </div>
       {/* Main Actions */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
-        <button className="flex flex-col items-center justify-center h-20 rounded-xl bg-zinc-800 hover:scale-105 active:scale-95 transition text-white" onClick={() => setModal('send')}><PaperPlaneRight size={28} /><span className="mt-1 text-sm">Send</span></button>
-        <button className="flex flex-col items-center justify-center h-20 rounded-xl bg-zinc-800 hover:scale-105 active:scale-95 transition text-white" onClick={() => setModal('receive')}><DownloadSimple size={28} /><span className="mt-1 text-sm">Receive</span></button>
-        <button className="flex flex-col items-center justify-center h-20 rounded-xl bg-zinc-800 hover:scale-105 active:scale-95 transition text-white" onClick={() => setModal('swap')}><ArrowsLeftRight size={28} /><span className="mt-1 text-sm">Swap</span></button>
-        <button className="flex flex-col items-center justify-center h-20 rounded-xl bg-zinc-800 hover:scale-105 active:scale-95 transition text-white" onClick={() => setModal('add')}><Plus size={28} /><span className="mt-1 text-sm">Add</span></button>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-xl bg-zinc-800 hover:bg-white/10 active:scale-95 transition text-white border border-white/10" onClick={() => setModal('send')}><PaperPlaneRight size={28} /><span className="mt-1 text-sm font-medium">Send</span></button>
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-xl bg-zinc-800 hover:bg-white/10 active:scale-95 transition text-white border border-white/10" onClick={() => setModal('receive')}><DownloadSimple size={28} /><span className="mt-1 text-sm font-medium">Receive</span></button>
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-xl bg-zinc-800 hover:bg-white/10 active:scale-95 transition text-white border border-white/10" onClick={() => setModal('swap')}><ArrowsLeftRight size={28} /><span className="mt-1 text-sm font-medium">Swap</span></button>
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-xl bg-zinc-800 hover:bg-white/10 active:scale-95 transition text-white border border-white/10" onClick={() => setModal('add')}><Plus size={28} /><span className="mt-1 text-sm font-medium">Add</span></button>
       </div>
       {/* Tabs */}
       <div className="flex mb-4">
@@ -358,18 +358,18 @@ export default function WalletPage() {
           </div>
         )}
       </div>
-      {/* TODO: ActionModal, dsb */}
+      {/* Modals */}
       <ActionModal open={modal === 'send'} onClose={() => setModal(null)} title="Send Token">
         <form className="flex flex-col gap-4" onSubmit={handleSend}>
           <input
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
             placeholder="Recipient Address"
             value={sendAddress}
             onChange={e => setSendAddress(e.target.value)}
             disabled={sendLoading}
           />
           <input
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
             placeholder="Amount"
             type="number"
             value={sendAmount}
@@ -389,7 +389,7 @@ export default function WalletPage() {
       <ActionModal open={modal === 'receive'} onClose={() => setModal(null)} title="Receive Token">
         <div className="flex flex-col items-center gap-4">
           <div className="text-sm text-gray-300">Your Address:</div>
-          <div className="font-mono text-lg bg-[#181f2a] px-4 py-2 rounded-lg">{address}</div>
+          <div className="font-mono text-lg bg-[#181f2a] px-4 py-2 rounded-lg border border-white/10">{address}</div>
           <QRCodeCanvas value={address} size={128} bgColor="#181f2a" fgColor="#fff" />
           <button className="text-xs text-blue-400 underline" onClick={handleCopyAddress}>Copy Address</button>
         </div>
@@ -397,21 +397,21 @@ export default function WalletPage() {
       <ActionModal open={modal === 'swap'} onClose={() => setModal(null)} title="Swap Token">
         <form className="flex flex-col gap-4" onSubmit={handleSwap}>
           <input
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
             placeholder="From Token (ex: ETH)"
             value={swapFrom}
             onChange={e => setSwapFrom(e.target.value)}
             disabled={swapLoading}
           />
           <input
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
             placeholder="To Token (ex: USDT)"
             value={swapTo}
             onChange={e => setSwapTo(e.target.value)}
             disabled={swapLoading}
           />
           <input
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
             placeholder="Amount"
             type="number"
             value={swapAmount}
@@ -431,7 +431,7 @@ export default function WalletPage() {
       <ActionModal open={modal === 'add'} onClose={() => setModal(null)} title="Add Token">
         <form className="flex flex-col gap-4" onSubmit={handleAddToken}>
           <input
-            className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
             placeholder="Token Address"
             value={addTokenAddress}
             onChange={e => setAddTokenAddress(e.target.value)}
@@ -451,18 +451,6 @@ export default function WalletPage() {
             {addTokenLoading ? 'Adding...' : 'Add Token'}
           </button>
         </form>
-        <div className="flex flex-col gap-4">
-          <input className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white" placeholder="From Token (ex: ETH)" />
-          <input className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white" placeholder="To Token (ex: USDT)" />
-          <input className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white" placeholder="Amount" type="number" />
-          <button className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition">Swap</button>
-        </div>
-      </ActionModal>
-      <ActionModal open={modal === 'add'} onClose={() => setModal(null)} title="Add Token">
-        <div className="flex flex-col gap-4">
-          <input className="w-full px-4 py-3 rounded-lg border border-gray-300 bg-[#181f2a] text-white" placeholder="Token Address" />
-          <button className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition">Add Token</button>
-        </div>
       </ActionModal>
       <div className="text-center text-xs text-gray-500 mt-2 mb-1">@cointwobot</div>
     </div>
