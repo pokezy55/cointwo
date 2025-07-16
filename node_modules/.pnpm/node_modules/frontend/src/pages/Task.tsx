@@ -1,6 +1,5 @@
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCard from '../components/TaskCard';
 import { Star } from 'phosphor-react';
@@ -75,7 +74,7 @@ export default function TaskPage() {
               <div className="flex items-center gap-2 mb-2 font-bold text-blue-400"><Star size={18} />Leaderboard</div>
               <div className="flex flex-col gap-1">
                 {leaderboard.length === 0 && <div className="text-gray-500">No leaderboard data.</div>}
-                {leaderboard.map((u, i) => (
+                {leaderboard.map((u) => (
                   <div key={u.address} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${u.isActive ? 'bg-blue-900 text-white font-bold' : 'bg-zinc-900 text-gray-200'}`}>
                     <span className="w-6 text-center">{u.rank}</span>
                     <span className="flex-1">{u.username}</span>
