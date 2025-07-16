@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaRegPaperPlane, FaRegArrowAltCircleDown, FaExchangeAlt, FaPlus, FaBars } from 'react-icons/fa';
+import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy, QrCode, Wallet, List, Users, Gear } from 'phosphor-react';
 import tokenListRaw from '../assets/tokenList.json';
 import ActionModal from '../components/ActionModal';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -238,35 +238,40 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#181f2a] flex flex-col text-white">
+    <div className="min-h-screen bg-[#10141f] flex flex-col text-white max-w-md mx-auto">
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <div className="font-bold text-lg">CoinTwo Wallet</div>
-        <FaBars className="text-2xl" />
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400 font-mono">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={handleCopyAddress} className="p-2 rounded-lg hover:bg-[#232b3b]">
+            <Copy size={20} weight="bold" />
+          </button>
+        </div>
       </div>
-      <div className="px-4 text-xs text-gray-400">{address}</div>
       {/* Balance */}
       <div className="flex flex-col items-center mt-2 mb-2">
-        <div className="text-3xl font-bold">$0.00</div>
-        <div className="text-xs text-gray-400">Total Portfolio Value | 0.0000</div>
+        <div className="text-4xl font-extrabold tracking-tight">$0.00</div>
+        <div className="text-xs text-gray-400 mt-1">Total Portfolio Value | <span className="text-blue-300">0.0000</span></div>
         <div className="text-xs text-gray-500">Last updated: 23:59:59 PM</div>
       </div>
       {/* Action Bar */}
-      <div className="flex justify-between px-4 mt-2 mb-2 gap-2">
-        <button className="flex flex-col items-center flex-1 py-2 hover:bg-[#232b3b] rounded-lg" onClick={() => setModal('send')}>
-          <FaRegPaperPlane className="text-xl mb-1" />
+      <div className="flex justify-between px-4 mt-4 mb-4 gap-2">
+        <button className="flex flex-col items-center flex-1 py-3 bg-[#181f2a] rounded-xl hover:bg-[#232b3b] transition" onClick={() => setModal('send')}>
+          <PaperPlaneRight size={24} weight="bold" className="mb-1" />
           <span className="text-xs">Send</span>
         </button>
-        <button className="flex flex-col items-center flex-1 py-2 hover:bg-[#232b3b] rounded-lg" onClick={() => setModal('receive')}>
-          <FaRegArrowAltCircleDown className="text-xl mb-1" />
+        <button className="flex flex-col items-center flex-1 py-3 bg-[#181f2a] rounded-xl hover:bg-[#232b3b] transition" onClick={() => setModal('receive')}>
+          <DownloadSimple size={24} weight="bold" className="mb-1" />
           <span className="text-xs">Receive</span>
         </button>
-        <button className="flex flex-col items-center flex-1 py-2 hover:bg-[#232b3b] rounded-lg" onClick={() => setModal('swap')}>
-          <FaExchangeAlt className="text-xl mb-1" />
+        <button className="flex flex-col items-center flex-1 py-3 bg-[#181f2a] rounded-xl hover:bg-[#232b3b] transition" onClick={() => setModal('swap')}>
+          <ArrowsLeftRight size={24} weight="bold" className="mb-1" />
           <span className="text-xs">Swap</span>
         </button>
-        <button className="flex flex-col items-center flex-1 py-2 hover:bg-[#232b3b] rounded-lg" onClick={() => setModal('add')}>
-          <FaPlus className="text-xl mb-1" />
+        <button className="flex flex-col items-center flex-1 py-3 bg-[#181f2a] rounded-xl hover:bg-[#232b3b] transition" onClick={() => setModal('add')}>
+          <Plus size={24} weight="bold" className="mb-1" />
           <span className="text-xs">Add</span>
         </button>
       </div>
@@ -277,24 +282,28 @@ export default function WalletPage() {
       </div>
       {/* Token List */}
       <div className="flex-1 overflow-y-auto px-2 pb-24">
-        {tokens.map((token) => {
-          const priceData = prices[COINGECKO_IDS[token.symbol]] || {};
-          const price = priceData.usd || 0;
-          const change = priceData.usd_24h_change?.toFixed(2) || 0;
-          return (
-            <div key={token.symbol} className="flex items-center bg-[#232b3b] rounded-xl p-4 mb-3">
-              <img src={token.logo} alt={token.symbol} className="w-10 h-10 mr-4" />
-              <div className="flex-1">
-                <div className="font-bold text-base">{token.symbol}</div>
-                <div className="text-xs text-gray-400">({token.name}) ${price?.toLocaleString()} <span className={+change >= 0 ? 'text-green-400' : 'text-red-400'}>{+change >= 0 ? '+' : ''}{change}%</span></div>
+        {tokens.length === 0 ? (
+          <div className="text-center text-gray-500 mt-12">No transaction history found</div>
+        ) : (
+          tokens.map((token) => {
+            const priceData = prices[COINGECKO_IDS[token.symbol]] || {};
+            const price = priceData.usd || 0;
+            const change = priceData.usd_24h_change?.toFixed(2) || 0;
+            return (
+              <div key={token.symbol} className="flex items-center bg-[#181f2a] rounded-xl p-4 mb-3">
+                <img src={token.logo} alt={token.symbol} className="w-10 h-10 mr-4" />
+                <div className="flex-1">
+                  <div className="font-bold text-base">{token.symbol}</div>
+                  <div className="text-xs text-gray-400">({token.name}) ${price?.toLocaleString()} <span className={+change >= 0 ? 'text-green-400' : 'text-red-400'}>{+change >= 0 ? '+' : ''}{change}%</span></div>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-base">{token.balance?.toFixed(6)}</div>
+                  <div className="text-xs text-gray-400">${((token.balance || 0) * price).toFixed(2)}</div>
+                </div>
               </div>
-              <div className="text-right">
-                <div className="font-bold text-base">{token.balance?.toFixed(6)}</div>
-                <div className="text-xs text-gray-400">${((token.balance || 0) * price).toFixed(2)}</div>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
       <ActionModal open={modal === 'send'} onClose={() => setModal(null)} title="Send Token">
         <form className="flex flex-col gap-4" onSubmit={handleSend}>
