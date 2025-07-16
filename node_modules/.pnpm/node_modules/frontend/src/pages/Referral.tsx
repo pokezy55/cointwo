@@ -5,11 +5,6 @@ import { api } from '../utils/api';
 import { FaCheckCircle, FaGift } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
-const referrals = [
-  { name: 'Alice', reward: 2 },
-  { name: 'Bob', reward: 1 },
-];
-
 export default function ReferralPage() {
   const { address } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -27,7 +22,7 @@ export default function ReferralPage() {
         // Notifikasi perubahan status referral
         const prev = prevReferrals.current;
         if (prev.length > 0 && res.data?.referrals) {
-          res.data.referrals.forEach((r: any, i: number) => {
+          res.data.referrals.forEach((r: any) => {
             const prevR = prev.find((p: any) => p.address === r.address);
             if (prevR) {
               // Reward eligible baru
@@ -115,8 +110,8 @@ export default function ReferralPage() {
       {error && <div className="text-center text-red-400">{error}</div>}
       <div className="space-y-2 px-4 pb-24">
         {data?.referrals?.length === 0 && <div className="text-center text-gray-400">No referrals yet.</div>}
-        {data?.referrals?.map((r: any, i: number) => (
-          <div key={i} className="flex items-center bg-[#232b3b] rounded-xl p-4">
+        {data?.referrals?.map((r: any) => (
+          <div key={r.address} className="flex items-center bg-[#232b3b] rounded-xl p-4">
             <div className="flex-1">
               <div className="font-bold text-base">{r.name || 'No Name'} <span className="text-xs text-gray-400">({r.address.slice(0, 8)}...{r.address.slice(-4)})</span></div>
               <div className="text-xs text-gray-400">Status: {r.status === 'completed' ? <span className="text-green-400 font-bold">Completed</span> : r.status === 'in_progress' ? <span className="text-yellow-400 font-bold">In Progress</span> : <span className="text-gray-400">Not Started</span>}</div>

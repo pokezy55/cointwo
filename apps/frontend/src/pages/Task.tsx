@@ -73,10 +73,10 @@ export default function TaskPage() {
           tasks.length === 0 ? (
             <div className="text-center text-gray-400 py-8">No tasks found.</div>
           ) : (
-            tasks.map((task, i) => {
+            tasks.map((task) => {
               const done = ['eligible', 'completed'].includes(task.status) || task.rewardSent;
               return (
-                <div key={i} className={`flex items-center bg-[#232b3b] rounded-xl p-4 mb-3 ${done ? 'opacity-60' : ''}`}>
+                <div key={task.taskNumber} className={`flex items-center bg-[#232b3b] rounded-xl p-4 mb-3 ${done ? 'opacity-60' : ''}`}>
                   <div className={`w-4 h-4 rounded-full mr-4 ${done ? 'bg-green-400' : 'bg-gray-500'}`}></div>
                   <div className="flex-1 font-bold text-base">{TASK_TITLES[task.taskNumber] || `Task #${task.taskNumber}`}</div>
                   {done && <span className="text-green-400 text-xs font-bold ml-2">Done</span>}

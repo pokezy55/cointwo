@@ -43,7 +43,7 @@ const CURRENT_CHAIN = 'ethereum'; // TODO: dynamic chain switch
 // Ambil address dari context
 
 export default function WalletPage() {
-  const { address, user } = useAuth();
+  const { address } = useAuth();
   const [prices, setPrices] = useState<PriceMap>({});
   const [balances, setBalances] = useState<BalanceMap>({});
   const [tokens, setTokens] = useState<Token[]>([]);
