@@ -26,7 +26,7 @@ export default function TaskPage() {
         const data = await getTaskStatus(address);
         // Deteksi perubahan status task
         const prevTasks = prevTasksRef.current;
-        data.forEach((task: any, i: number) => {
+        data.forEach((task: any) => {
           const prev = prevTasks.find((t: any) => t.taskNumber === task.taskNumber);
           if (prev && prev.status !== task.status) {
             // Eligible
