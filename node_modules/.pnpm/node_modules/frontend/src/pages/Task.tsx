@@ -1,6 +1,5 @@
 import { useAuth } from '../context/AuthContext';
 import { useEffect, useState } from 'react';
-import { toast } from 'react-toastify';
 import { motion, AnimatePresence } from 'framer-motion';
 import TaskCard from '../components/TaskCard';
 import { Star } from 'phosphor-react';

@@ -1,40 +1,18 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy, CurrencyEth, CurrencyDollar, Info, Star } from 'phosphor-react';
+import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy, CurrencyEth, Star } from 'phosphor-react';
 import tokenListRaw from '../assets/tokenList.json';
 import ActionModal from '../components/ActionModal';
 import { QRCodeCanvas } from 'qrcode.react';
 import { toast } from 'react-toastify';
-import Auth from './Auth';
 import WelcomeCard from '../components/WelcomeCard';
 import TokenItem from '../components/TokenItem';
 import HistoryItem from '../components/HistoryItem';
-
-interface Token {
-  symbol: string;
-  name: string;
-  address: string;
-  chain: string;
-  logo: string;
-  balance?: number;
-}
-
-interface PriceMap {
-  [coingeckoId: string]: {
-    usd: number;
-    usd_24h_change: number;
-  };
-}
-
-interface BalanceMap {
-  [symbol: string]: string;
-}
 
 const tokenList = tokenListRaw as any[];
 const COINGECKO_IDS: { [symbol: string]: string } = {
   ETH: 'ethereum', USDT: 'tether', USDC: 'usd-coin', DAI: 'dai', BNB: 'binancecoin', BUSD: 'binance-usd', MATIC: 'matic-network', QUICK: 'quick',
 };
-const CURRENT_CHAIN = 'ethereum';
 
 export default function WalletPage() {
   const { user, selectedNetwork } = useAuth();

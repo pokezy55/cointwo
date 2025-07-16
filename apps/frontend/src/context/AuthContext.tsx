@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, useEffect } from 'react';
-import type { UserContextType } from '../utils/api';
 
 const NETWORKS = [
   { name: 'Ethereum', chainId: 1, symbol: 'ETH', logo: '/eth.svg', rpc: 'https://rpc.ankr.com/eth' },

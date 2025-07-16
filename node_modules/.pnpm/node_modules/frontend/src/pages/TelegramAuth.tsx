@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import "../types/telegram.d.ts";
 
 function isTelegramWebApp() {
-  return typeof window !== 'undefined' && !!window.Telegram?.WebApp;
+  return typeof window !== 'undefined' && !!window?.Telegram?.WebApp;
 }
 
 const TelegramAuth = () => {
@@ -18,7 +18,7 @@ const TelegramAuth = () => {
 
   useEffect(() => {
     if (isTelegramWebApp()) {
-      const tg = window.Telegram.WebApp;
+      const tg = window?.Telegram.WebApp;
       if (tg?.initDataUnsafe?.user) {
         setTgUser(tg.initDataUnsafe.user);
         setUser((prev: any) => ({ ...prev, telegram: tg.initDataUnsafe.user }));
