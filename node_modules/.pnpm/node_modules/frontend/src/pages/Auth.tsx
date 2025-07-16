@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { ethers, isHexString } from 'ethers';
 import { useNavigate } from 'react-router-dom';
-import '../types/telegram';
+import "../types/telegram.d.ts";
 
 function isTelegramWebApp() {
   return typeof window !== 'undefined' && !!window.Telegram?.WebApp;
