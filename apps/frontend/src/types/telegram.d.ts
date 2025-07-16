@@ -14,6 +14,7 @@ declare global {
             photo_url?: string;
           };
         };
+        openTelegramLink?: (url: string) => void;
       };
     };
   }

@@ -42,7 +42,7 @@ export default function ReferralPage() {
   const handleShare = () => {
     const link = `https://t.me/cointwobot?start=ref${username}`;
     if (window.Telegram?.WebApp) {
-      window.Telegram.WebApp.openTelegramLink(link);
+      window.Telegram?.WebApp?.openTelegramLink?.(link);
     } else {
       navigator.clipboard.writeText(link);
       toast.success('Referral link copied!');
