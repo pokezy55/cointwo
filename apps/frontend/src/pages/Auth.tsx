@@ -18,10 +18,10 @@ const TelegramAuth = () => {
 
   useEffect(() => {
     if (isTelegramWebApp()) {
-      const tg = window?.Telegram.WebApp;
+      const tg = window?.Telegram?.WebApp;
       if (tg?.initDataUnsafe?.user) {
-        setTgUser(tg.initDataUnsafe.user);
-        setUser((prev: any) => ({ ...prev, telegram: tg.initDataUnsafe.user }));
+        setTgUser(tg.initDataUnsafe?.user);
+        setUser((prev: any) => ({ ...prev, telegram: tg.initDataUnsafe?.user }));
       }
     } else {
       setFallback(true);
@@ -78,6 +78,10 @@ const TelegramAuth = () => {
         </div>
       </div>
     );
+  }
+
+  if (!tgUser) {
+    return <div>Not in Telegram WebApp</div>;
   }
 
   return (
