@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy, Wallet, List, Users, Gear } from 'phosphor-react';
+import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy } from 'phosphor-react';
 import tokenListRaw from '../assets/tokenList.json';
 import ActionModal from '../components/ActionModal';
 import { QRCodeCanvas } from 'qrcode.react';
