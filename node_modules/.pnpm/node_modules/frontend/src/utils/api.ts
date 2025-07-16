@@ -11,4 +11,17 @@ api.interceptors.response.use(
     // Bisa tambahkan toast di sini jika mau
     return Promise.reject(err?.response?.data || err);
   }
-); 
+);
+
+export async function getTaskStatus(walletAddress: string) {
+  const res = await api.get(`/task/status?user=${walletAddress}`);
+  return res.data.tasks;
+}
+
+export interface UserContextType {
+  address: string;
+  email?: string;
+  user?: any;
+  setUser: (user: any) => void;
+  logout: () => void;
+} 

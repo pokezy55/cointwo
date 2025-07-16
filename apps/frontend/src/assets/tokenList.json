@@ -1,0 +1,93 @@
+[
+  {
+    "symbol": "ETH",
+    "name": "Ethereum",
+    "address": "0x0000000000000000000000000000000000000000",
+    "chain": "ethereum",
+    "logo": "https://cryptologos.cc/logos/ethereum-eth-logo.png"
+  },
+  {
+    "symbol": "USDT",
+    "name": "Tether",
+    "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    "chain": "ethereum",
+    "logo": "https://cryptologos.cc/logos/tether-usdt-logo.png"
+  },
+  {
+    "symbol": "USDC",
+    "name": "USD Coin",
+    "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    "chain": "ethereum",
+    "logo": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+  },
+  {
+    "symbol": "DAI",
+    "name": "Dai",
+    "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+    "chain": "ethereum",
+    "logo": "https://cryptologos.cc/logos/multi-collateral-dai-dai-logo.png"
+  },
+  {
+    "symbol": "BNB",
+    "name": "BNB",
+    "address": "0x0000000000000000000000000000000000000000",
+    "chain": "bsc",
+    "logo": "https://cryptologos.cc/logos/binance-coin-bnb-logo.png"
+  },
+  {
+    "symbol": "BUSD",
+    "name": "Binance USD",
+    "address": "0xe9e7cea3dedca5984780bafc599bd69add087d56",
+    "chain": "bsc",
+    "logo": "https://cryptologos.cc/logos/binance-usd-busd-logo.png"
+  },
+  {
+    "symbol": "USDT",
+    "name": "Tether",
+    "address": "0x55d398326f99059ff775485246999027b3197955",
+    "chain": "bsc",
+    "logo": "https://cryptologos.cc/logos/tether-usdt-logo.png"
+  },
+  {
+    "symbol": "USDC",
+    "name": "USD Coin",
+    "address": "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d",
+    "chain": "bsc",
+    "logo": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+  },
+  {
+    "symbol": "MATIC",
+    "name": "Polygon",
+    "address": "0x0000000000000000000000000000000000000000",
+    "chain": "polygon",
+    "logo": "https://cryptologos.cc/logos/polygon-matic-logo.png"
+  },
+  {
+    "symbol": "USDC",
+    "name": "USD Coin",
+    "address": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174",
+    "chain": "polygon",
+    "logo": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+  },
+  {
+    "symbol": "QUICK",
+    "name": "Quickswap",
+    "address": "0x831753dd7087cac61ab5644b308642cc1c33dc13",
+    "chain": "polygon",
+    "logo": "https://assets.coingecko.com/coins/images/25393/small/token.png"
+  },
+  {
+    "symbol": "ETH",
+    "name": "ETH (Base)",
+    "address": "0x4200000000000000000000000000000000000006",
+    "chain": "base",
+    "logo": "https://cryptologos.cc/logos/ethereum-eth-logo.png"
+  },
+  {
+    "symbol": "USDC",
+    "name": "USD Coin",
+    "address": "0xd9aa094d0d6e1a6a0b3bda0e3b6c7b6c6c6c6c6c",
+    "chain": "base",
+    "logo": "https://cryptologos.cc/logos/usd-coin-usdc-logo.png"
+  }
+] 

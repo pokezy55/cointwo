@@ -1,16 +1,30 @@
-import { useState } from 'react';
+import { useState, useContext, useEffect } from 'react';
+import { AuthContext } from '../context/AuthContext';
 
-interface AuthProps {
-  onAuth: (user: any) => void;
-}
-
-const Auth = ({ onAuth }: AuthProps) => {
+const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { setUser } = useContext(AuthContext);
+
+  // Cek param ref_username dari URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const refUsername = params.get('ref_username');
+    if (refUsername) {
+      localStorage.setItem('ref_username', refUsername);
+    }
+  }, []);
 
   // Dummy login handler
   const handleLogin = () => {
-    onAuth({ id: 'dummy-id', address: '0x123...', email });
+    const refUsername = localStorage.getItem('ref_username');
+    const user = { id: 'dummy-id', address: '0x123...', email };
+    setUser(user);
+    localStorage.setItem('user', JSON.stringify(user));
+    // Kirim ref_username ke backend saat register/login/import wallet
+    // (Implementasi POST ke backend, tambahkan ref_username jika ada)
+    // Setelah sukses, hapus ref_username dari localStorage
+    if (refUsername) localStorage.removeItem('ref_username');
   };
 
   return (
@@ -41,13 +55,9 @@ const Auth = ({ onAuth }: AuthProps) => {
             Login
           </button>
         </form>
-        <div className="flex w-full gap-4 mt-2">
-          <button className="w-1/2 py-3 rounded-xl bg-gray-100 font-bold text-lg shadow hover:bg-gray-200 transition">Register</button>
-          <button className="w-1/2 py-3 rounded-xl bg-gray-100 font-bold text-lg shadow hover:bg-gray-200 transition">Import Wallet</button>
-        </div>
       </div>
     </div>
   );
-};
+}
 
 export default Auth; 
