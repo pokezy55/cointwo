@@ -8,6 +8,8 @@ import { toast } from 'react-toastify';
 import WelcomeCard from '../components/WelcomeCard';
 import TokenItem from '../components/TokenItem';
 import HistoryItem from '../components/HistoryItem';
+import NetworkBadge from '../components/NetworkBadge';
+import { motion } from 'framer-motion';
 
 const tokenList = tokenListRaw as any[];
 const COINGECKO_IDS: { [symbol: string]: string } = {
@@ -275,77 +277,84 @@ export default function WalletPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-black max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans border border-white/10 rounded-2xl shadow-xl">
+    <motion.div
+      className="min-h-screen bg-[#0f0f0f] max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans rounded-2xl shadow-md"
+      initial={{ opacity: 0, y: 32 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-2">
-          {avatar && <img src={avatar} alt="avatar" className="w-9 h-9 rounded-full border border-white/10" />}
-          <span className="text-xs text-gray-400 font-mono">{address?.slice(0, 6)}...{address?.slice(-4)}</span>
-          <button onClick={handleCopyAddress} className="ml-1 p-1 rounded-lg hover:bg-white/10 transition"><Copy size={18} /></button>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1 px-2 py-1 rounded bg-blue-700/80 text-xs font-semibold"><Star size={16} />Level {level}</span>
-          <span className="text-xs text-gray-400">XP: {xp}</span>
-          <span className="flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 text-xs text-blue-400 font-bold">
-            <img src={selectedNetwork.logo} alt={selectedNetwork.name} className="w-4 h-4 rounded-full" />
-            {selectedNetwork.name}
-          </span>
-          <button className="ml-2 px-3 py-1 rounded bg-blue-700 text-white text-xs font-bold hover:bg-blue-600 transition" onClick={handleScanAirdrop}>Scan Airdrop</button>
-        </div>
-      </div>
-      <div className="w-full max-w-xs mb-4">
-        <div className="h-2 bg-zinc-800 rounded-full">
-          <div className="h-2 rounded-full bg-blue-500 transition-all" style={{ width: `${Math.min((xp % 20) * 5, 100)}%` }} />
-        </div>
-      </div>
-      {/* Airdrop Detected Tab */}
-      {showAirdropTab && (
-        <div className="mb-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="font-bold text-blue-400">Airdrop Detected</span>
-            <button className="text-xs text-gray-400 underline" onClick={() => setShowAirdropTab(false)}>Hide</button>
+        <div className="flex flex-col gap-1">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-xs bg-white/5 px-2 py-1 rounded-lg select-all">
+              {address?.slice(0, 6)}...{address?.slice(-4)}
+            </span>
+            <button
+              onClick={handleCopyAddress}
+              className="ml-1 p-1 rounded-lg hover:bg-white/10 transition text-blue-400"
+              title="Copy address"
+            >
+              <Copy size={16} />
+            </button>
+            <NetworkBadge name={selectedNetwork.name} logo={selectedNetwork.logo} />
           </div>
-          <div className="flex flex-col gap-2">
-            {airdropTokens.length === 0 ? (
-              <div className="text-gray-500">No new airdrop tokens found.</div>
-            ) : (
-              airdropTokens.map((token: any) => (
-                <div key={token.address} className="bg-zinc-900 rounded-xl px-4 py-3 flex items-center gap-3 border border-white/10">
-                  <img src={token.logo} alt={token.symbol} className="w-8 h-8 rounded-full" />
-                  <div className="flex-1">
-                    <div className="font-semibold text-base">{token.name}</div>
-                    <div className="text-xs text-gray-400">{token.symbol}</div>
-                  </div>
-                  <button className="ml-2 px-2 py-1 rounded bg-green-600 text-white text-xs font-bold hover:bg-green-500 transition" onClick={() => toast.success(`Token $${token.symbol} claimed!`)}>Claim</button>
-                </div>
-              ))
-            )}
+          <div className="flex items-center gap-2 mt-1">
+            <span className="flex items-center gap-1 px-2 py-1 rounded-xl bg-blue-700/80 text-xs font-semibold">
+              <Star size={14} />Level {level}
+            </span>
+            <span className="text-xs text-gray-400">XP: {xp}</span>
           </div>
         </div>
-      )}
-      {/* Portfolio */}
+        {avatar && (
+          <img src={avatar} alt="avatar" className="w-10 h-10 rounded-full border-2 border-white/10 object-cover" />
+        )}
+      </div>
+      {/* Portfolio Section */}
       <div className="flex flex-col items-center mb-6">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-3xl font-bold">${totalValue.toFixed(2)}</span>
-          <CurrencyEth size={24} className="text-blue-400" />
+          <span className="text-4xl font-bold tracking-tight">${totalValue.toFixed(2)}</span>
+          <CurrencyEth size={22} className="text-blue-400" />
         </div>
         <span className="text-sm text-gray-400 mb-1">Total Portfolio Value</span>
         <span className="text-xs text-gray-500">Last updated: {lastUpdated}</span>
       </div>
-      {/* Main Actions */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-xl bg-zinc-800 hover:bg-white/10 active:scale-95 transition text-white border border-white/10" onClick={() => setModal('send')}><PaperPlaneRight size={28} /><span className="mt-1 text-sm font-medium">Send</span></button>
-        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-xl bg-zinc-800 hover:bg-white/10 active:scale-95 transition text-white border border-white/10" onClick={() => setModal('receive')}><DownloadSimple size={28} /><span className="mt-1 text-sm font-medium">Receive</span></button>
-        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-xl bg-zinc-800 hover:bg-white/10 active:scale-95 transition text-white border border-white/10" onClick={() => setModal('swap')}><ArrowsLeftRight size={28} /><span className="mt-1 text-sm font-medium">Swap</span></button>
-        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-xl bg-zinc-800 hover:bg-white/10 active:scale-95 transition text-white border border-white/10" onClick={() => setModal('add')}><Plus size={28} /><span className="mt-1 text-sm font-medium">Add</span></button>
-      </div>
-      {/* Tabs */}
-      <div className="flex mb-4">
-        <button className={`flex-1 py-2 rounded-l-xl ${selectedTab==='token' ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-gray-400'}`} onClick={() => setSelectedTab('token')}>Tokens</button>
-        <button className={`flex-1 py-2 rounded-r-xl ${selectedTab==='history' ? 'bg-zinc-800 text-white' : 'bg-zinc-900 text-gray-400'}`} onClick={() => setSelectedTab('history')}>History</button>
+      {/* Main Action Grid */}
+      <motion.div layout className="grid grid-cols-2 gap-4 mb-6">
+        <motion.button whileTap={{ scale: 0.95 }} className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/5 hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('send')}>
+          <PaperPlaneRight size={32} className="mb-1" />
+          <span className="text-base font-medium">Send</span>
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.95 }} className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/5 hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('receive')}>
+          <DownloadSimple size={32} className="mb-1" />
+          <span className="text-base font-medium">Receive</span>
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.95 }} className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/5 hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('swap')}>
+          <ArrowsLeftRight size={32} className="mb-1" />
+          <span className="text-base font-medium">Swap</span>
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.95 }} className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/5 hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('add')}>
+          <Plus size={32} className="mb-1" />
+          <span className="text-base font-medium">Add</span>
+        </motion.button>
+      </motion.div>
+      {/* Tab Switcher */}
+      <div className="flex justify-center mb-4">
+        <button
+          className={`flex-1 py-2 text-center font-semibold transition border-b-2 ${selectedTab === 'token' ? 'text-white border-blue-500' : 'text-gray-400 border-transparent'}`}
+          onClick={() => setSelectedTab('token')}
+        >
+          Token
+        </button>
+        <button
+          className={`flex-1 py-2 text-center font-semibold transition border-b-2 ${selectedTab === 'history' ? 'text-white border-blue-500' : 'text-gray-400 border-transparent'}`}
+          onClick={() => setSelectedTab('history')}
+        >
+          History
+        </button>
       </div>
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto">
+      <motion.div layout className="flex-1 overflow-y-auto">
         {selectedTab === 'token' ? (
           <div className="flex flex-col gap-2">
             {tokens.length === 0 && <div className="text-center text-gray-500 py-8">No tokens found.</div>}
@@ -357,7 +366,7 @@ export default function WalletPage() {
             {history.map(tx => <HistoryItem key={tx.id} tx={tx} />)}
           </div>
         )}
-      </div>
+      </motion.div>
       {/* Modals */}
       <ActionModal open={modal === 'send'} onClose={() => setModal(null)} title="Send Token">
         <form className="flex flex-col gap-4" onSubmit={handleSend}>
@@ -453,6 +462,6 @@ export default function WalletPage() {
         </form>
       </ActionModal>
       <div className="text-center text-xs text-gray-500 mt-2 mb-1">@cointwobot</div>
-    </div>
+    </motion.div>
   );
 } 
