@@ -4,7 +4,7 @@ import TaskPage from './pages/Task';
 import ReferralPage from './pages/Referral';
 import MenuPage from './pages/Menu';
 import TelegramAuth from './pages/TelegramAuth';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 
 function TabBar() {
   // ...tab bar code, sama seperti sebelumnya...

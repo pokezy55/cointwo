@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { Star, Key, Globe, SignOut } from 'phosphor-react';
 import MenuItem from '../components/MenuItem';
 import { useEffect, useState } from 'react';
 
