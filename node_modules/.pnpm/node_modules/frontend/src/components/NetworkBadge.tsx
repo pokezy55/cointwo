@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface NetworkBadgeProps {
   name: string;
   logo: string;

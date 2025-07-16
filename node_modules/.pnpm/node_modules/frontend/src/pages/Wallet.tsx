@@ -27,8 +27,6 @@ export default function WalletPage() {
   const [history, setHistory] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [modal, setModal] = useState<null | 'send' | 'receive' | 'swap' | 'add'>(null);
-  const [airdropTokens, setAirdropTokens] = useState<any[]>([]);
-  const [showAirdropTab, setShowAirdropTab] = useState(false);
   const [xp, setXP] = useState(0);
   const [level, setLevel] = useState(1);
 
@@ -256,17 +254,6 @@ export default function WalletPage() {
     } finally {
       setAddTokenLoading(false);
     }
-  };
-
-  // Scan Airdrop manual
-  const handleScanAirdrop = async () => {
-    // Dummy: fetch token baru 24 jam terakhir
-    // Replace with real backend logic if available
-    const res = await fetch(`/wallet/airdrop-scan?address=${user?.address}&chain=${selectedNetwork.name}`);
-    const data = await res.json();
-    setAirdropTokens(data.tokens || []);
-    setShowAirdropTab(true);
-    toast.info('Airdrop scan complete!');
   };
 
   // Portfolio value
