@@ -5,6 +5,7 @@ import tokenListRaw from '../assets/tokenList.json';
 import ActionModal from '../components/ActionModal';
 import { QRCodeCanvas } from 'qrcode.react';
 import { toast } from 'react-toastify';
+import Auth from './Auth';
 
 interface Token {
   symbol: string;
@@ -233,12 +234,7 @@ export default function WalletPage() {
   };
 
   if (!address) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#181f2a] text-white">
-        <div className="text-lg font-bold mb-4">Please login or import wallet to continue</div>
-        {/* Bisa render <Auth /> di sini jika mau */}
-      </div>
-    );
+    return <Auth />;
   }
 
   return (

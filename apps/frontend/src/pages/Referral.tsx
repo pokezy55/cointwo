@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { api } from '../utils/api';
 import { FaCheckCircle, FaGift } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import Auth from './Auth';
 
 export default function ReferralPage() {
   const { address } = useAuth();
@@ -43,11 +44,7 @@ export default function ReferralPage() {
   }, [address]);
 
   if (!address) {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-[#181f2a] text-white">
-        <div className="text-lg font-bold mb-4">Please login or import wallet to continue</div>
-      </div>
-    );
+    return <Auth />;
   }
 
   return (
