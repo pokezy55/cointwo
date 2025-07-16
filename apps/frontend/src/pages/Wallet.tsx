@@ -264,17 +264,12 @@ export default function WalletPage() {
   }
 
   return (
-    <motion.div
-      className="min-h-screen bg-[#0f0f0f] max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans rounded-2xl shadow-md"
-      initial={{ opacity: 0, y: 32 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-    >
+    <div className="min-h-screen bg-[#101828] max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans rounded-2xl shadow-lg">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs bg-white/5 px-2 py-1 rounded-lg select-all">
+            <span className="font-mono text-xs bg-[#1A2236] px-2 py-1 rounded-lg select-all tracking-tight">
               {address?.slice(0, 6)}...{address?.slice(-4)}
             </span>
             <button
@@ -286,47 +281,41 @@ export default function WalletPage() {
             </button>
             <NetworkBadge name={selectedNetwork.name} logo={selectedNetwork.logo} />
           </div>
-          <div className="flex items-center gap-2 mt-1">
-            <span className="flex items-center gap-1 px-2 py-1 rounded-xl bg-blue-700/80 text-xs font-semibold">
-              <Star size={14} />Level {level}
-            </span>
-            <span className="text-xs text-gray-400">XP: {xp}</span>
-          </div>
         </div>
         {avatar && (
           <img src={avatar} alt="avatar" className="w-10 h-10 rounded-full border-2 border-white/10 object-cover" />
         )}
       </div>
       {/* Portfolio Section */}
-      <div className="flex flex-col items-center mb-6">
+      <div className="flex flex-col items-center mb-4">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-4xl font-bold tracking-tight">${totalValue.toFixed(2)}</span>
-          <CurrencyEth size={22} className="text-blue-400" />
+          <span className="text-3xl font-bold tracking-tight">${totalValue.toFixed(2)}</span>
+          <CurrencyEth size={20} className="text-blue-400" />
         </div>
-        <span className="text-sm text-gray-400 mb-1">Total Portfolio Value</span>
+        <span className="text-xs text-gray-400 mb-1">Total Portfolio Value | 0.0000</span>
         <span className="text-xs text-gray-500">Last updated: {lastUpdated}</span>
       </div>
       {/* Main Action Grid */}
-      <motion.div layout className="grid grid-cols-2 gap-4 mb-6">
-        <motion.button whileTap={{ scale: 0.95 }} className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/5 hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('send')}>
-          <PaperPlaneRight size={32} className="mb-1" />
-          <span className="text-base font-medium">Send</span>
-        </motion.button>
-        <motion.button whileTap={{ scale: 0.95 }} className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/5 hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('receive')}>
-          <DownloadSimple size={32} className="mb-1" />
-          <span className="text-base font-medium">Receive</span>
-        </motion.button>
-        <motion.button whileTap={{ scale: 0.95 }} className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/5 hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('swap')}>
-          <ArrowsLeftRight size={32} className="mb-1" />
-          <span className="text-base font-medium">Swap</span>
-        </motion.button>
-        <motion.button whileTap={{ scale: 0.95 }} className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/5 hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('add')}>
-          <Plus size={32} className="mb-1" />
-          <span className="text-base font-medium">Add</span>
-        </motion.button>
-      </motion.div>
+      <div className="grid grid-cols-4 gap-2 mb-4">
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-[#1A2236] hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('send')}>
+          <PaperPlaneRight size={24} className="mb-1" />
+          <span className="text-xs font-medium">Send</span>
+        </button>
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-[#1A2236] hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('receive')}>
+          <DownloadSimple size={24} className="mb-1" />
+          <span className="text-xs font-medium">Receive</span>
+        </button>
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-[#1A2236] hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('swap')}>
+          <ArrowsLeftRight size={24} className="mb-1" />
+          <span className="text-xs font-medium">Swap</span>
+        </button>
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-[#1A2236] hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('add')}>
+          <Plus size={24} className="mb-1" />
+          <span className="text-xs font-medium">Add</span>
+        </button>
+      </div>
       {/* Tab Switcher */}
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-2 border-b border-white/10">
         <button
           className={`flex-1 py-2 text-center font-semibold transition border-b-2 ${selectedTab === 'token' ? 'text-white border-blue-500' : 'text-gray-400 border-transparent'}`}
           onClick={() => setSelectedTab('token')}
@@ -341,7 +330,7 @@ export default function WalletPage() {
         </button>
       </div>
       {/* Tab Content */}
-      <motion.div layout className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto">
         {selectedTab === 'token' ? (
           <div className="flex flex-col gap-2">
             {tokens.length === 0 && <div className="text-center text-gray-500 py-8">No tokens found.</div>}
@@ -353,7 +342,7 @@ export default function WalletPage() {
             {history.map(tx => <HistoryItem key={tx.id} tx={tx} />)}
           </div>
         )}
-      </motion.div>
+      </div>
       {/* Modals */}
       <ActionModal open={modal === 'send'} onClose={() => setModal(null)} title="Send Token">
         <form className="flex flex-col gap-4" onSubmit={handleSend}>
@@ -449,6 +438,6 @@ export default function WalletPage() {
         </form>
       </ActionModal>
       <div className="text-center text-xs text-gray-500 mt-2 mb-1">@cointwobot</div>
-    </motion.div>
+    </div>
   );
 } 
