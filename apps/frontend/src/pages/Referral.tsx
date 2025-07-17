@@ -2,27 +2,14 @@ import { useAuth } from '../context/AuthContext';
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import ReferralItem from '../components/ReferralItem';
-import { Star } from 'phosphor-react';
+import { ShareNetwork, Copy } from 'phosphor-react';
+import NetworkBadge from '../components/NetworkBadge';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function ReferralPage() {
-  const { user, selectedNetwork, NETWORKS, setSelectedNetwork } = useAuth();
+  const { user, selectedNetwork } = useAuth();
   const username = user?.telegram?.username || 'yourref';
-  const address = user?.address;
   const [referrals, setReferrals] = useState<any[]>([]);
-  const [xp, setXP] = useState(0);
-  const [level, setLevel] = useState(1);
-  useEffect(() => {
-    async function fetchXP() {
-      const res = await fetch(`/leaderboard?chain=${selectedNetwork.name}&limit=100&address=${address}`);
-      const data = await res.json();
-      const me = data.leaderboard.find((u: any) => u.address.toLowerCase() === address?.toLowerCase());
-      if (me) {
-        setXP(me.xp);
-        setLevel(me.level);
-      }
-    }
-    if (address) fetchXP();
-  }, [address, selectedNetwork]);
   useEffect(() => {
     async function fetchReferrals() {
       try {
@@ -39,9 +26,14 @@ export default function ReferralPage() {
     navigator.clipboard.writeText(username);
     toast.success('Referral code copied!');
   };
-  const handleShare = () => {
+  const handleShare = async () => {
     const link = `https://t.me/cointwobot?start=ref${username}`;
-    if (window.Telegram?.WebApp) {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Join CoinTwo Wallet', text: 'Get rewards by joining!', url: link });
+        toast.success('Shared!');
+      } catch {}
+    } else if (window.Telegram?.WebApp) {
       window.Telegram?.WebApp?.openTelegramLink?.(link);
     } else {
       navigator.clipboard.writeText(link);
@@ -49,32 +41,40 @@ export default function ReferralPage() {
     }
   };
   return (
-    <div className="min-h-screen bg-[#10141f] max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">Invite Friends</h1>
-        <div className="text-gray-400 text-sm mb-2">Earn $1 per friend who completes all tasks.</div>
+    <div className="min-h-screen bg-[#101828] max-w-md mx-auto px-2 py-4 flex flex-col text-white font-sans rounded-2xl shadow-xl">
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="mb-4 flex flex-col gap-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold mb-1 tracking-tight">Invite Friends</h1>
+            <div className="text-gray-400 text-sm">Get rewards by inviting friends</div>
+          </div>
+          <NetworkBadge name={selectedNetwork.name} logo={selectedNetwork.logo} />
+        </div>
+      </motion.div>
+      {/* Referral Code Card */}
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="mb-4 w-full bg-white/10 backdrop-blur-md rounded-2xl p-5 shadow-lg flex flex-col gap-2 items-center border border-white/10">
+        <div className="text-xs text-gray-400 mb-1">Your Referral Code</div>
         <div className="flex items-center gap-2 mb-2">
-          <span className="bg-zinc-900 px-3 py-1 rounded font-mono text-sm">{username}</span>
-          <button className="px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 transition" onClick={handleCopy}>Copy</button>
-          <button className="px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-white transition" onClick={handleShare}>Share</button>
+          <span className="bg-[#181f2a] px-4 py-2 rounded font-mono text-base tracking-wide select-all border border-white/10">{username}</span>
+          <button className="p-2 rounded-xl bg-white/10 hover:bg-blue-500/20 transition text-blue-400" onClick={handleCopy} aria-label="Copy code"><Copy size={18} /></button>
+          <button className="p-2 rounded-xl bg-blue-600 hover:bg-blue-700 transition text-white" onClick={handleShare} aria-label="Share code"><ShareNetwork size={18} /></button>
         </div>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="flex items-center gap-1 px-2 py-1 rounded bg-blue-700 text-xs font-bold"><Star size={16} />Level {level}</span>
-          <span className="text-xs text-gray-400">XP: {xp}</span>
-        </div>
-        <div className="flex gap-2 mt-2">
-          <span className="text-xs text-gray-400">Network:</span>
-          <select className="bg-zinc-900 text-white rounded px-2 py-1" value={selectedNetwork.chainId} onChange={e => setSelectedNetwork(NETWORKS.find((n: any) => n.chainId === +e.target.value))}>
-            {NETWORKS.map((n: any) => <option key={n.chainId} value={n.chainId}>{n.name}</option>)}
-          </select>
-        </div>
-      </div>
+        <div className="text-xs text-gray-500 text-center">Share your code or link to invite friends and earn rewards.</div>
+      </motion.div>
+      {/* Referral List */}
       <div className="flex-1 flex flex-col gap-3">
-        {referrals.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">No referrals yet.</div>
-        ) : (
-          referrals.map(ref => <ReferralItem key={ref.address+selectedNetwork.chainId} referral={ref} chain={selectedNetwork.name} />)
-        )}
+        <AnimatePresence mode="wait">
+          {referrals.length === 0 ? (
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center text-gray-500 py-8">No referrals yet.<br/>Share your code to start earning!</motion.div>
+          ) : (
+            referrals.map(ref => (
+              <motion.div key={ref.address+selectedNetwork.chainId} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} transition={{ duration: 0.3 }}>
+                <ReferralItem referral={ref} chain={selectedNetwork.name} />
+              </motion.div>
+            ))
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

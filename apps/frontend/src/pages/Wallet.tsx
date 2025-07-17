@@ -1,31 +1,33 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy, CurrencyEth } from 'phosphor-react';
+import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Copy, CurrencyEth } from 'phosphor-react';
 import tokenListRaw from '../assets/tokenList.json';
 import ActionModal from '../components/ActionModal';
 import { QRCodeCanvas } from 'qrcode.react';
 import { toast } from 'react-toastify';
-import WelcomeCard from '../components/WelcomeCard';
 import TokenItem from '../components/TokenItem';
 import HistoryItem from '../components/HistoryItem';
 import NetworkBadge from '../components/NetworkBadge';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const tokenList = tokenListRaw as any[];
 const COINGECKO_IDS: { [symbol: string]: string } = {
-  ETH: 'ethereum', USDT: 'tether', USDC: 'usd-coin', DAI: 'dai', BNB: 'binancecoin', BUSD: 'binance-usd', MATIC: 'matic-network', QUICK: 'quick',
+  ETH: 'ethereum', USDT: 'tether', USDC: 'usd-coin', BNB: 'binancecoin', POL: 'matic-network', BASE: 'ethereum',
 };
 
 export default function WalletPage() {
   const { user, selectedNetwork } = useAuth();
   const address = user?.address;
   const avatar = user?.telegram?.photo_url;
+  const name = user?.telegram?.first_name || '';
+  const username = user?.telegram?.username || '';
   const [prices, setPrices] = useState<any>({});
   const [balances, setBalances] = useState<any>({});
   const [tokens, setTokens] = useState<any[]>([]);
   const [selectedTab, setSelectedTab] = useState<'token'|'history'>('token');
   const [history, setHistory] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('');
-  const [modal, setModal] = useState<null | 'send' | 'receive' | 'swap' | 'add'>(null);
+  const [modal, setModal] = useState<null | 'send' | 'receive' | 'swap'>(null);
 
   // State untuk form Send Token
   const [sendAddress, setSendAddress] = useState('');
@@ -39,12 +41,6 @@ export default function WalletPage() {
   const [swapAmount, setSwapAmount] = useState('');
   const [swapLoading, setSwapLoading] = useState(false);
   const [swapError, setSwapError] = useState<string | null>(null);
-
-  // State untuk form Add Token
-  const [addTokenAddress, setAddTokenAddress] = useState('');
-  const [addTokenLoading, setAddTokenLoading] = useState(false);
-  const [addTokenError, setAddTokenError] = useState<string | null>(null);
-  const [addTokenInfo, setAddTokenInfo] = useState<{ symbol: string; name: string; decimals: number } | null>(null);
 
   const prevTokenSymbols = useRef<string[]>([]);
 
@@ -165,13 +161,6 @@ export default function WalletPage() {
     }
   };
 
-  const handleCopyAddress = () => {
-    if (address) {
-      navigator.clipboard.writeText(address);
-      toast.success('Address copied!');
-    }
-  };
-
   const handleSwap = async (e: React.FormEvent) => {
     e.preventDefault();
     setSwapError(null);
@@ -209,148 +198,123 @@ export default function WalletPage() {
     }
   };
 
-  const handleAddToken = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAddTokenError(null);
-    setAddTokenInfo(null);
-    if (!isValidAddress(addTokenAddress)) {
-      setAddTokenError('Invalid token address');
-      return;
-    }
-    setAddTokenLoading(true);
-    try {
-      // Fetch token info
-      const infoRes = await fetch(`/wallet/token-info?address=${addTokenAddress}&chain=${selectedNetwork.name}`);
-      const info = await infoRes.json();
-      if (!info.symbol || !info.name) {
-        setAddTokenError('Token info not found');
-        setAddTokenLoading(false);
-        return;
-      }
-      setAddTokenInfo(info);
-      // Simpan ke backend (atau local state)
-      const saveRes = await fetch('/wallet/add-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address: addTokenAddress, chain: selectedNetwork.name, user: address })
-      });
-      const saveData = await saveRes.json();
-      if (saveRes.ok) {
-        toast.success('Token added!');
-        setAddTokenAddress('');
-        setAddTokenInfo(null);
-        setModal(null);
-      } else {
-        setAddTokenError(saveData.error || 'Failed to add token');
-        toast.error(saveData.error || 'Failed to add token');
-      }
-    } catch (err) {
-      setAddTokenError('Network error');
-      toast.error('Network error');
-    } finally {
-      setAddTokenLoading(false);
-    }
-  };
-
   // Portfolio value
   const totalValue = tokens.reduce((sum, t) => sum + (t.balance * (prices[COINGECKO_IDS[t.symbol]]?.usd || 0)), 0);
 
-  if (!address) {
-    return <WelcomeCard />;
-  }
+  if (!address) return null;
 
   return (
-    <div className="min-h-screen bg-[#101828] max-w-md mx-auto px-4 py-6 flex flex-col text-white font-sans rounded-2xl shadow-lg">
+    <div className="min-h-screen bg-[#101828] max-w-md mx-auto px-2 py-4 flex flex-col text-white font-sans rounded-2xl shadow-xl relative">
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex flex-col gap-1">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs bg-[#1A2236] px-2 py-1 rounded-lg select-all tracking-tight">
-              {address?.slice(0, 6)}...{address?.slice(-4)}
-            </span>
-            <button
-              onClick={handleCopyAddress}
-              className="ml-1 p-1 rounded-lg hover:bg-white/10 transition text-blue-400"
-              title="Copy address"
-            >
-              <Copy size={16} />
-            </button>
-            <NetworkBadge name={selectedNetwork.name} logo={selectedNetwork.logo} />
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          {avatar && (
+            <img src={avatar} alt="avatar" className="w-12 h-12 rounded-full border-2 border-white/10 object-cover shadow" />
+          )}
+          <div className="flex flex-col">
+            <span className="font-semibold text-base leading-tight">{name}</span>
+            <span className="text-xs text-blue-400">@{username}</span>
+            <div className="flex items-center gap-1 mt-1">
+              <span className="font-mono text-xs bg-[#1A2236] px-2 py-1 rounded-lg select-all tracking-tight">
+                {address?.slice(0, 6)}...{address?.slice(-4)}
+              </span>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(address);
+                  toast.success('Address copied!');
+                }}
+                className="ml-1 p-1 rounded-lg hover:bg-white/10 transition text-blue-400"
+                title="Copy address"
+                aria-label="Copy address"
+              >
+                <Copy size={16} />
+              </button>
+              <NetworkBadge name={selectedNetwork.name} logo={selectedNetwork.logo} />
+            </div>
           </div>
         </div>
-        {avatar && (
-          <img src={avatar} alt="avatar" className="w-10 h-10 rounded-full border-2 border-white/10 object-cover" />
-        )}
-      </div>
+      </motion.div>
       {/* Portfolio Section */}
-      <div className="flex flex-col items-center mb-4">
-        <div className="flex items-center gap-2 mb-1">
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }} className="flex flex-col items-center mb-4">
+        <div className="flex items-center gap-2 mb-1 bg-white/10 backdrop-blur-md px-6 py-3 rounded-2xl shadow-lg">
           <span className="text-3xl font-bold tracking-tight">${totalValue.toFixed(2)}</span>
-          <CurrencyEth size={20} className="text-blue-400" />
+          <CurrencyEth size={22} className="text-blue-400" />
         </div>
-        <span className="text-xs text-gray-400 mb-1">Total Portfolio Value | 0.0000</span>
+        <span className="text-xs text-gray-400 mb-1">Total Portfolio Value</span>
         <span className="text-xs text-gray-500">Last updated: {lastUpdated}</span>
-      </div>
+      </motion.div>
       {/* Main Action Grid */}
-      <div className="grid grid-cols-4 gap-2 mb-4">
-        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-[#1A2236] hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('send')}>
-          <PaperPlaneRight size={24} className="mb-1" />
-          <span className="text-xs font-medium">Send</span>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} className="grid grid-cols-3 gap-3 mb-4">
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/10 backdrop-blur-md hover:bg-blue-500/20 transition ring-1 ring-white/10 text-white shadow-lg" onClick={() => setModal('send')}>
+          <PaperPlaneRight size={28} className="mb-1" />
+          <span className="text-xs font-semibold">Send</span>
         </button>
-        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-[#1A2236] hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('receive')}>
-          <DownloadSimple size={24} className="mb-1" />
-          <span className="text-xs font-medium">Receive</span>
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/10 backdrop-blur-md hover:bg-blue-500/20 transition ring-1 ring-white/10 text-white shadow-lg" onClick={() => setModal('receive')}>
+          <DownloadSimple size={28} className="mb-1" />
+          <span className="text-xs font-semibold">Receive</span>
         </button>
-        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-[#1A2236] hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('swap')}>
-          <ArrowsLeftRight size={24} className="mb-1" />
-          <span className="text-xs font-medium">Swap</span>
+        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-white/10 backdrop-blur-md hover:bg-blue-500/20 transition ring-1 ring-white/10 text-white shadow-lg" onClick={() => setModal('swap')}>
+          <ArrowsLeftRight size={28} className="mb-1" />
+          <span className="text-xs font-semibold">Swap</span>
         </button>
-        <button className="flex flex-col items-center justify-center w-full aspect-square rounded-2xl bg-[#1A2236] hover:bg-white/10 transition ring-1 ring-white/10 text-white" onClick={() => setModal('add')}>
-          <Plus size={24} className="mb-1" />
-          <span className="text-xs font-medium">Add</span>
-        </button>
-      </div>
+      </motion.div>
       {/* Tab Switcher */}
-      <div className="flex justify-center mb-2 border-b border-white/10">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.2 }} className="flex justify-center mb-2 gap-2">
         <button
-          className={`flex-1 py-2 text-center font-semibold transition border-b-2 ${selectedTab === 'token' ? 'text-white border-blue-500' : 'text-gray-400 border-transparent'}`}
+          className={`flex-1 py-2 rounded-xl font-semibold transition-all ${selectedTab === 'token' ? 'bg-blue-600 text-white shadow' : 'bg-white/10 text-gray-400 hover:bg-white/20'}`}
           onClick={() => setSelectedTab('token')}
         >
           Token
         </button>
         <button
-          className={`flex-1 py-2 text-center font-semibold transition border-b-2 ${selectedTab === 'history' ? 'text-white border-blue-500' : 'text-gray-400 border-transparent'}`}
+          className={`flex-1 py-2 rounded-xl font-semibold transition-all ${selectedTab === 'history' ? 'bg-blue-600 text-white shadow' : 'bg-white/10 text-gray-400 hover:bg-white/20'}`}
           onClick={() => setSelectedTab('history')}
         >
           History
         </button>
-      </div>
+      </motion.div>
       {/* Tab Content */}
-      <div className="flex-1 overflow-y-auto">
-        {selectedTab === 'token' ? (
-          <div className="flex flex-col gap-2">
-            {tokens.length === 0 && <div className="text-center text-gray-500 py-8">No tokens found.</div>}
-            {tokens.map(token => <TokenItem key={token.symbol} token={token} price={prices[COINGECKO_IDS[token.symbol]]?.usd} />)}
-          </div>
-        ) : (
-          <div className="flex flex-col gap-2">
-            {history.length === 0 && <div className="text-center text-gray-500 py-8">No transaction history found.</div>}
-            {history.map(tx => <HistoryItem key={tx.id} tx={tx} />)}
-          </div>
-        )}
+      <div className="flex-1 overflow-y-auto pb-2">
+        <AnimatePresence mode="wait">
+          {selectedTab === 'token' ? (
+            <motion.div
+              key="token"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col gap-2"
+            >
+              {tokens.length === 0 && <div className="text-center text-gray-500 py-8">No tokens found.</div>}
+              {tokens.map(token => <TokenItem key={token.symbol} token={token} price={prices[COINGECKO_IDS[token.symbol]]?.usd} />)}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="history"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.3 }}
+              className="flex flex-col gap-2"
+            >
+              {history.length === 0 && <div className="text-center text-gray-500 py-8">No transaction history found.</div>}
+              {history.map(tx => <HistoryItem key={tx.id} tx={tx} />)}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
       {/* Modals */}
       <ActionModal open={modal === 'send'} onClose={() => setModal(null)} title="Send Token">
         <form className="flex flex-col gap-4" onSubmit={handleSend}>
           <input
-            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/10 backdrop-blur-md text-white placeholder-gray-400"
             placeholder="Recipient Address"
             value={sendAddress}
             onChange={e => setSendAddress(e.target.value)}
             disabled={sendLoading}
           />
           <input
-            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/10 backdrop-blur-md text-white placeholder-gray-400"
             placeholder="Amount"
             type="number"
             value={sendAmount}
@@ -359,7 +323,7 @@ export default function WalletPage() {
           />
           {sendError && <div className="text-red-400 text-sm text-center">{sendError}</div>}
           <button
-            className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition disabled:opacity-60"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-60"
             type="submit"
             disabled={sendLoading}
           >
@@ -370,29 +334,29 @@ export default function WalletPage() {
       <ActionModal open={modal === 'receive'} onClose={() => setModal(null)} title="Receive Token">
         <div className="flex flex-col items-center gap-4">
           <div className="text-sm text-gray-300">Your Address:</div>
-          <div className="font-mono text-lg bg-[#181f2a] px-4 py-2 rounded-lg border border-white/10">{address}</div>
+          <div className="font-mono text-lg bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl border border-white/10 select-all">{address}</div>
           <QRCodeCanvas value={address} size={128} bgColor="#181f2a" fgColor="#fff" />
-          <button className="text-xs text-blue-400 underline" onClick={handleCopyAddress}>Copy Address</button>
+          <button className="text-xs text-blue-400 underline" onClick={() => {navigator.clipboard.writeText(address);toast.success('Address copied!');}}>Copy Address</button>
         </div>
       </ActionModal>
       <ActionModal open={modal === 'swap'} onClose={() => setModal(null)} title="Swap Token">
         <form className="flex flex-col gap-4" onSubmit={handleSwap}>
           <input
-            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/10 backdrop-blur-md text-white placeholder-gray-400"
             placeholder="From Token (ex: ETH)"
             value={swapFrom}
             onChange={e => setSwapFrom(e.target.value)}
             disabled={swapLoading}
           />
           <input
-            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/10 backdrop-blur-md text-white placeholder-gray-400"
             placeholder="To Token (ex: USDT)"
             value={swapTo}
             onChange={e => setSwapTo(e.target.value)}
             disabled={swapLoading}
           />
           <input
-            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
+            className="w-full px-4 py-3 rounded-xl border border-white/10 bg-white/10 backdrop-blur-md text-white placeholder-gray-400"
             placeholder="Amount"
             type="number"
             value={swapAmount}
@@ -401,7 +365,7 @@ export default function WalletPage() {
           />
           {swapError && <div className="text-red-400 text-sm text-center">{swapError}</div>}
           <button
-            className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition disabled:opacity-60"
+            className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold text-lg shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-60"
             type="submit"
             disabled={swapLoading}
           >
@@ -409,31 +373,7 @@ export default function WalletPage() {
           </button>
         </form>
       </ActionModal>
-      <ActionModal open={modal === 'add'} onClose={() => setModal(null)} title="Add Token">
-        <form className="flex flex-col gap-4" onSubmit={handleAddToken}>
-          <input
-            className="w-full px-4 py-3 rounded-lg border border-white/10 bg-[#181f2a] text-white"
-            placeholder="Token Address"
-            value={addTokenAddress}
-            onChange={e => setAddTokenAddress(e.target.value)}
-            disabled={addTokenLoading}
-          />
-          {addTokenInfo && (
-            <div className="text-xs text-green-400 text-center">
-              Token: {addTokenInfo.symbol} ({addTokenInfo.name}), Decimals: {addTokenInfo.decimals}
-            </div>
-          )}
-          {addTokenError && <div className="text-red-400 text-sm text-center">{addTokenError}</div>}
-          <button
-            className="w-full py-3 rounded-lg bg-blue-600 text-white font-bold text-lg hover:bg-blue-700 transition disabled:opacity-60"
-            type="submit"
-            disabled={addTokenLoading}
-          >
-            {addTokenLoading ? 'Adding...' : 'Add Token'}
-          </button>
-        </form>
-      </ActionModal>
-      <div className="text-center text-xs text-gray-500 mt-2 mb-1">@cointwobot</div>
+      <div className="text-center text-xs text-gray-500 mt-4 mb-1">@cointwobot</div>
     </div>
   );
 } 
