@@ -1,5 +1,4 @@
 import { Info } from 'phosphor-react';
-import { useState } from 'react';
 
 interface TokenItemProps {
   token: any;
@@ -7,7 +6,6 @@ interface TokenItemProps {
 }
 
 export default function TokenItem({ token, price }: TokenItemProps) {
-  const [showTooltip, setShowTooltip] = useState(false);
   return (
     <div className="flex items-center justify-between bg-[#1A2236] rounded-xl px-4 py-3 shadow-md ring-1 ring-white/10">
       <div className="flex items-center gap-3">
@@ -17,9 +15,9 @@ export default function TokenItem({ token, price }: TokenItemProps) {
             {token.name}
             <button
               className="ml-1 text-gray-400 hover:text-blue-400 focus:outline-none"
-              onMouseEnter={() => setShowTooltip(true)}
-              onMouseLeave={() => setShowTooltip(false)}
-              onTouchStart={() => setShowTooltip(v => !v)}
+              onMouseEnter={() => {}}
+              onMouseLeave={() => {}}
+              onTouchStart={() => {}}
             >
               <Info size={16} />
             </button>

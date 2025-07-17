@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy, CurrencyEth, Star } from 'phosphor-react';
+import { PaperPlaneRight, DownloadSimple, ArrowsLeftRight, Plus, Copy, CurrencyEth } from 'phosphor-react';
 import tokenListRaw from '../assets/tokenList.json';
 import ActionModal from '../components/ActionModal';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -9,7 +9,6 @@ import WelcomeCard from '../components/WelcomeCard';
 import TokenItem from '../components/TokenItem';
 import HistoryItem from '../components/HistoryItem';
 import NetworkBadge from '../components/NetworkBadge';
-import { motion } from 'framer-motion';
 
 const tokenList = tokenListRaw as any[];
 const COINGECKO_IDS: { [symbol: string]: string } = {
@@ -27,8 +26,6 @@ export default function WalletPage() {
   const [history, setHistory] = useState<any[]>([]);
   const [lastUpdated, setLastUpdated] = useState<string>('');
   const [modal, setModal] = useState<null | 'send' | 'receive' | 'swap' | 'add'>(null);
-  const [xp, setXP] = useState(0);
-  const [level, setLevel] = useState(1);
 
   // State untuk form Send Token
   const [sendAddress, setSendAddress] = useState('');
@@ -123,8 +120,7 @@ export default function WalletPage() {
       const data = await res.json();
       const me = data.leaderboard.find((u: any) => u.address.toLowerCase() === address?.toLowerCase());
       if (me) {
-        setXP(me.xp);
-        setLevel(me.level);
+        // Removed unused xp and level state
       }
     }
     if (address) fetchXP();
